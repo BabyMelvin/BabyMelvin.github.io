@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="1.概述Android为了快速响应，应用程序退出，还需继续存在系统以再次启动时提高响应时间。太多后台进程，需要进行管理，根据一定策略进行释放进程，有了lmk,lmkd来决定什么时间杀掉什么进程.来决定什么时间杀掉什么进程.">
+<meta name="keywords" content="Android 内存管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lowmemorykiller">
+<meta property="og:url" content="http://yoursite.com/2017/10/27/lowmemorykiller/index.html">
+<meta property="og:site_name" content="杭">
+<meta property="og:description" content="1.概述Android为了快速响应，应用程序退出，还需继续存在系统以再次启动时提高响应时间。太多后台进程，需要进行管理，根据一定策略进行释放进程，有了lmk,lmkd来决定什么时间杀掉什么进程.来决定什么时间杀掉什么进程.">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-02-02T11:21:31.747Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="lowmemorykiller">
+<meta name="twitter:description" content="1.概述Android为了快速响应，应用程序退出，还需继续存在系统以再次启动时提高响应时间。太多后台进程，需要进行管理，根据一定策略进行释放进程，有了lmk,lmkd来决定什么时间杀掉什么进程.来决定什么时间杀掉什么进程.">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="杭" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/10/27/lowmemorykiller/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>lowmemorykiller | 杭</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">杭</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Practice makes perfect!</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/10/27/lowmemorykiller/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Melvin">
+      <meta itemprop="description" content="Learn Android/Linux OS">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="杭">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">lowmemorykiller
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2017-10-27 04:27:54" itemprop="dateCreated datePublished" datetime="2017-10-27T04:27:54+08:00">2017-10-27</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-02-02 19:21:31" itemprop="dateModified" datetime="2019-02-02T19:21:31+08:00">2019-02-02</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1.概述"></a>1.概述</h1><p>Android为了快速响应，应用程序退出，还需继续存在系统以再次启动时提高响应时间。太多后台进程，需要进行管理，根据一定策略进行释放进程，有了<code>lmk</code>,<code>lmkd</code>来决定什么时间杀掉什么进程.来决定什么时间杀掉什么进程.</p>
+<a id="more"></a>
+<p>Linux有类似内存管理策略–OOM killer(Out of Memory Killer).OOM策略更多的是用于分配内存不足时触发，<code>将得分最高的进程杀掉</code>。而<code>lmk</code>则会每隔一段时间检查一次，当系统剩余可用内存较低时，便会触发进程的策略，根据不同的剩余内存档位来选择杀不同的优先级的进程，而不是等到OOM时再来杀进程，真正OOM时系统可能已经处于异常状态，系统更希望的是未雨绸缪，在内存很低的时候杀掉一些优先级较低的进程来保障后续操作的顺利进行。</p>
+<p>涉及到java层：<code>ProcessList.java</code>,native层：<code>system/core/lmkd</code>,driver：<code>staging/lowmemroykiller.c</code>.主要通过三个命令来完成调动操作：</p>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>命令</th>
+<th>对应方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LMK_PROCPRIO</td>
+<td>设置进程adj</td>
+<td><code>PL.setOomAdj()</code></td>
+</tr>
+<tr>
+<td>LMK_TARGET</td>
+<td>更新oom_adj</td>
+<td><code>PL.updateOomLevels()</code></td>
+</tr>
+<tr>
+<td>LMK_PROCREMOVE</td>
+<td>移除进程<code>PL.remove()</code></td>
+</tr>
+</tbody>
+</table>
+<h1 id="2-源码分析"><a href="#2-源码分析" class="headerlink" title="2.源码分析"></a>2.源码分析</h1><p><code>lmkd</code>通过socket将framework层与native层联系起来，native层通过init解析服务信息与driver内核进程通信。</p>
+<h2 id="2-1-framwork层"><a href="#2-1-framwork层" class="headerlink" title="2.1 framwork层"></a>2.1 framwork层</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//ActivityManagerService.java</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> final boolean <span class="title">aplyOomAdjLocked</span><span class="params">(Process add,boolean doingAll,</span></span></span><br><span class="line"><span class="function"><span class="params"><span class="keyword">long</span> now,<span class="keyword">long</span> nowEllaped)</span></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(app.curAdj!=app.setAdj)&#123;</span><br><span class="line">        ProcessList.setOomAdj(app.id,app.info.uid,app.curAdj);</span><br><span class="line">        app.setAdj=app.curAdj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">///ProcessList.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> final <span class="keyword">void</span> <span class="title">setoomAdj</span><span class="params">(<span class="keyword">int</span> pid,<span class="keyword">int</span> uid,<span class="keyword">int</span> amt)</span></span>&#123;</span><br><span class="line">    <span class="comment">//当adj=16,则直接返回</span></span><br><span class="line">    <span class="keyword">if</span>(amt==UNKOWN_ADJ) </span><br><span class="line">        <span class="keyword">return</span> ;</span><br><span class="line">    <span class="keyword">long</span> start=SysteClock.elapsedRealTime();</span><br><span class="line">    ByteBuffer buf=ByteBuffer.allocate(<span class="number">4</span>*<span class="number">4</span>);</span><br><span class="line">    buf.putInt(LMK_PROCPRIO);</span><br><span class="line">    buf.putInt(pid);</span><br><span class="line">    buf.putInt(uid);</span><br><span class="line">    buf.putInt(amt);<span class="comment">//目标adj</span></span><br><span class="line">    <span class="comment">//将16字节写入socket,</span></span><br><span class="line">    writeLmkd(buf);</span><br><span class="line">    <span class="keyword">long</span> now =SystemClock.elapedRealtime();</span><br><span class="line">    <span class="keyword">if</span>((now-start)&gt;<span class="number">250</span>)&#123;</span><br><span class="line">        Slog.w(<span class="string">"ActivityManage"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">writeLmkd</span><span class="params">(ByteBuffer buf)</span></span>&#123;</span><br><span class="line">    <span class="comment">//当socket打开失败会尝试3次</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">3</span>;i++)&#123;</span><br><span class="line">        <span class="keyword">if</span>(sLmdSocket ==null)&#123;</span><br><span class="line">            <span class="comment">//打开socket</span></span><br><span class="line">            <span class="keyword">if</span>(openLmkdSocket() == <span class="literal">false</span>)&#123; </span><br><span class="line">                <span class="keyword">try</span>&#123;</span><br><span class="line">                    Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">                &#125;<span class="keyword">catch</span>()&#123;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            <span class="comment">//将buf信息写入lmkd socket</span></span><br><span class="line">            sLmkdOututStream.write(buf.arry(),<span class="number">0</span>,buf.position());</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="keyword">catch</span>(IOException ex)&#123;</span><br><span class="line">            <span class="keyword">try</span>&#123;</span><br><span class="line">                sLmkdSocket.close();</span><br><span class="line">            &#125;<span class="keyword">catch</span>(IOException ex2)&#123;</span><br><span class="line">            &#125;</span><br><span class="line">            sLmkdSocket=null;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> boolean <span class="title">openLmkdSocket</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">try</span>&#123;</span><br><span class="line">        sLmkdSocket=<span class="keyword">new</span> LocalSocket(LocalSocket.SOCKET_SEQPACKET);</span><br><span class="line">        <span class="comment">//远程lmkd守护进程建立socket连接</span></span><br><span class="line">        sLmkdSocket.connect(<span class="keyword">new</span> LocalSocketAddress(<span class="string">"lmkd"</span>,LocalSocketAddress.Namespace.RESERVED));</span><br><span class="line">        sLmkdOutputStream=sLmkdSocket.getOutputStream();</span><br><span class="line">    &#125;<span class="keyword">catch</span>()&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>sLmkdSocket</code>采用的是<code>SOCK_SEQPACKET</code>，这是类型socket提供顺序确定的可靠的，双向基于连接的socket endpoint。与<code>SOCK_STREAM</code>很相似，唯一不同的是SEQPACEKET保留消息边界，而SOCK_STREAM是基于字节流，并不会记录边界。 read端能够知道要读取数据大小。</p>
+<h2 id="2-2-native层"><a href="#2-2-native层" class="headerlink" title="2.2 native层"></a>2.2 native层</h2><p>lmkd是由init进程，通过解析init.rc文件启动的Lmkd守护进程，lmkd会创建名为<code>lmkd</code>的socket，节点位于<code>/dev/socket/lmkd</code>,该socket用于跟上层framework交互。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">service lmkd /system/bin/lmkd</span><br><span class="line">    class core</span><br><span class="line">    critical</span><br><span class="line">    socket lmkd seqpacket 0660 system system</span><br><span class="line">    writepid /dev/cpuset/system-backgroud/tasks</span><br></pre></td></tr></table></figure>
+<p>lmkd启动，执行可制成程序<code>lmkd</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc __unused,<span class="keyword">char</span> **argv __unused)</span></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">shed_param</span> <span class="title">param</span>=&#123;</span></span><br><span class="line">        .sched_priority=<span class="number">1</span>,</span><br><span class="line">    &#125;;</span><br><span class="line">    mLockall(MCL_FUTURE);</span><br><span class="line">    shed_setscheduler(<span class="number">0</span>,SCHED_FIFO,&amp;param);</span><br><span class="line">    <span class="comment">//初始化</span></span><br><span class="line">    <span class="keyword">if</span>(!init())&#123;</span><br><span class="line">        mainloop();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">init</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">epev</span>;</span></span><br><span class="line">    <span class="keyword">int</span> i,ret;</span><br><span class="line">    page_k =sysconf(_SC_PAGESIZE);</span><br><span class="line">    <span class="keyword">if</span>(page_k==<span class="number">-1</span>)</span><br><span class="line">        page_k=PAGE_SIZE;</span><br><span class="line">    page_k/=<span class="number">1024</span>;</span><br><span class="line">    <span class="comment">//创建epoll监听文件句柄</span></span><br><span class="line">    epollfd=epoll_create(MAX_EPOLL_EVENTS);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//获得lmkd控制描述符</span></span><br><span class="line">    ctrl_lfd=android_get_control_socket(<span class="string">"lmkd"</span>);</span><br><span class="line">    <span class="comment">//监听lmkd socket</span></span><br><span class="line">    ret=listen(ctrl_fd,<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    epev.events=EPOLLIN;</span><br><span class="line">    epev.data.ptr=(<span class="keyword">void</span>*)ctrl_connect_handler;</span><br><span class="line">    <span class="comment">//将文件句柄ctrl_lfd,加入epoll句柄</span></span><br><span class="line">    epoll_ctl(epollfd,EPOLL_CTL_ADD,ctrl_lfd,&amp;epev);</span><br><span class="line">    maxevents++;</span><br><span class="line">    <span class="comment">//该路径是否具有可写的权限</span></span><br><span class="line">    use_inkernel_interface=!access(INKERNEL_MINFREE_PATH,W_OK);</span><br><span class="line">    <span class="keyword">if</span>(use_inkernel_interface)&#123;</span><br><span class="line">        ALOGI(<span class="string">"Using inkernel low memory killer interface"</span>):</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        ret=init_mp(MEMPERSSURE_WATH_LEVEL,(<span class="keyword">void</span>*)&amp;mp_event);</span><br><span class="line">        <span class="keyword">if</span>(ret)</span><br><span class="line">            ALOGE(<span class="string">"kernel does not support memeory pressure events or in-kernlr low memory"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;=ADJTOSLOT(OOM_SCORE_ADJ_MAX);i++)&#123;</span><br><span class="line">        procadjslot_list[i].next=&amp;procadjslot_list[i];</span><br><span class="line">        procadjslog_list[i].prev=&amp;procadjslog_list[i];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过检查<code>/sys/module/lowmemorykiller/parameters/minfree</code>节点是否具有可写权限来判断是否使用kernel来管理Lmk事件。默认该节点具有系统可写权限。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">mainloop</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">events</span>[<span class="title">maxevents</span>];</span></span><br><span class="line">        <span class="keyword">int</span> events,i;</span><br><span class="line">        ctrl_dfd_reopened=<span class="number">0</span>;</span><br><span class="line">        <span class="comment">//等待epollfd上的事件</span></span><br><span class="line">        nevents=epoll_wait(epollfd,events,maxevents,<span class="number">-1</span>);</span><br><span class="line">        <span class="keyword">if</span>(events==<span class="number">-1</span>)&#123;</span><br><span class="line">            <span class="keyword">if</span>(errono==EINTR)&#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;nevents;++i)&#123;</span><br><span class="line">            <span class="keyword">if</span>(events[i].events &amp; EPOLLERR)&#123;</span><br><span class="line">                ALOGD(<span class="string">"EPOLLERR on events #%d"</span>,i);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//当事件到来，则盗用ctrl_connects_handler方法</span></span><br><span class="line">            <span class="keyword">if</span>(events[i].data.ptr)&#123;</span><br><span class="line">                (*(*<span class="keyword">void</span>(*))events[i].data.ptr)(events[i].events);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主循环调动<code>epoll_wait()</code>，等待epollfd的事件，当接收到中断或者不存在事件，则执行continue操作。当事件到来，则调用的ctr_connect_handler方法，该方法是由<code>init()</code>过程中设定的方法.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">ctrl_connet_handler</span><span class="params">(<span class="keyword">uint32_t</span> events __unused)</span></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">epoll_event</span> <span class="title">epev</span>;</span></span><br><span class="line">    <span class="keyword">if</span>(ctrl_dfd &gt;=<span class="number">0</span>)&#123;</span><br><span class="line">        ctrl_data_close();</span><br><span class="line">        ctrl_dfd_reopened=<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ctrl_dfd=accept(ctrl_lfd,<span class="literal">NULL</span>,<span class="literal">NULL</span>);</span><br><span class="line">    ALOGI(<span class="string">"ActivityManager connected"</span>);</span><br><span class="line">    maxevents ++;</span><br><span class="line">    epev.events=EPOLLIN;</span><br><span class="line">    epev.data.ptr=(<span class="keyword">void</span>*)ctrl_data_handler;</span><br><span class="line">    <span class="comment">//将ctrl_lfd添加到epollfd</span></span><br><span class="line">    <span class="keyword">if</span>(epoll_ctrl(epollfd,EPOLL_CTL_ADD,ctrl_dfd,&amp;epev)==<span class="number">-1</span>)&#123;</span><br><span class="line">        ctrl_data_close();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="2-2-1-处理事件"><a href="#2-2-1-处理事件" class="headerlink" title="2.2.1 处理事件"></a>2.2.1 处理事件</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">ctrl_data_handler</span><span class="params">(<span class="keyword">uint32_t</span> events)</span></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(events &amp; EPOLLHUP)&#123;</span><br><span class="line">        <span class="keyword">if</span>(!ctrl_dfd_reopned)</span><br><span class="line">            ctrl_data_close();</span><br><span class="line">    &#125;<span class="keyword">else</span> <span class="keyword">if</span>(events &amp; EPOLLIN)&#123;</span><br><span class="line">        ctrl_command_handler();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">static</span>  <span class="keyword">void</span> <span class="title">ctrl_comand_handler</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> ibuf[CTRL_PACKET_NAX /<span class="keyword">sizeof</span>(<span class="keyword">int</span>)];</span><br><span class="line">    <span class="keyword">int</span> len,cmd=<span class="number">-1</span>,nargs,targets;</span><br><span class="line">    le=ctr_data_read((<span class="keyword">char</span>*)ibuf,CTRL_PACKET_MAX);</span><br><span class="line">    <span class="keyword">if</span>(len&lt;=<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    nargs=len/<span class="keyword">sizeof</span>(<span class="keyword">int</span>)<span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">if</span>(nargs&lt;<span class="number">0</span>)</span><br><span class="line">        <span class="keyword">goto</span> wronglen;</span><br><span class="line">    <span class="comment">//将网络字节顺序转化为主机字节顺序</span></span><br><span class="line">    cmd=ntohl(ibuf[<span class="number">0</span>]);</span><br><span class="line">    <span class="keyword">switch</span>(cmd)&#123;</span><br><span class="line">        <span class="keyword">case</span> LMK_TARGET:</span><br><span class="line">            targets=nargs/<span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span>(nargs &amp; <span class="number">0x01</span> || targets &gt;(<span class="keyword">int</span>)ARRAY_SIZE(lowmem_adj))&#123;</span><br><span class="line">                <span class="keyword">goto</span> wronglen;</span><br><span class="line">            &#125;</span><br><span class="line">            cmd_target(targets,&amp;ibuf[<span class="number">1</span>]);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> LMK_PROCPRIO:</span><br><span class="line">            <span class="keyword">if</span>(args !=<span class="number">3</span>)</span><br><span class="line">                <span class="keyword">goto</span> wronglen;</span><br><span class="line">            <span class="comment">//设置进程adj</span></span><br><span class="line">            cmd_proprio(ntohl(ibuf[i]),ntohl(ibuf[<span class="number">2</span>]),ntohl(ibuf[<span class="number">3</span>]));</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> LMK_PROCREMOVE:</span><br><span class="line">            <span class="keyword">if</span>(nargs !=<span class="number">1</span>)</span><br><span class="line">                <span class="keyword">goto</span> wronglen;</span><br><span class="line">            cmd_procremove(ntohl(ibuf[<span class="number">1</span>]));</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            ALOGE(<span class="string">"Received unkown command code %d"</span>,cmd);</span><br><span class="line">            <span class="keyword">return</span> ;</span><br><span class="line">    &#125;</span><br><span class="line">wronglen:</span><br><span class="line">    ALOGE(<span class="string">"Wrong control socket read length cmd=%d, len=%d"</span>,cmd,len);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不同的分支,进入相应的分支.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">cmd_procprio</span><span class="params">(<span class="keyword">int</span> pid,<span class="keyword">int</span> uid,<span class="keyword">int</span> oomadj)</span></span>&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">proc</span>* <span class="title">procp</span>;</span></span><br><span class="line">    <span class="keyword">char</span> path[<span class="number">800</span>],val[<span class="number">20</span>];</span><br><span class="line">    <span class="built_in">snprintf</span>(path,<span class="keyword">sizeof</span>(path),<span class="string">"/proc/%d/oom_scorre_adj"</span>,pid);</span><br><span class="line">    <span class="built_in">snprintf</span>(val,<span class="keyword">sizeof</span>(val),<span class="string">"%d"</span>,oomadj);</span><br><span class="line">    <span class="comment">//向节点/proc/&lt;pid&gt;/oom_score_adj写入oomadj</span></span><br><span class="line">    writefilestring(path,val);</span><br><span class="line">    <span class="comment">//当使用kernel方式则直接返回</span></span><br><span class="line">    <span class="keyword">if</span>(use_ikernel_interface)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    procp=pid_lookup(pid);</span><br><span class="line">    <span class="keyword">if</span>(!procp)&#123;</span><br><span class="line">        procp=<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(struct proc));</span><br><span class="line">        <span class="keyword">if</span>(!procp)</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        procp-&gt;pid=pid;</span><br><span class="line">        procp-&gt;uid=uid;</span><br><span class="line">        procp-&gt;oomadj=oomadj;</span><br><span class="line">        proc_insert(procp);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        procp_unslot(procp);</span><br><span class="line">        procp-&gt;oomadj=oomadj;</span><br><span class="line">        procp-&gt;slot(procp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="2-3-小结"><a href="#2-3-小结" class="headerlink" title="2.3 小结"></a>2.3 小结</h2><p>use_kernel_interface该值后续应该会逐渐采用用户空间策略。不过目前仍然use_inkernel_interface=1:</p>
+<ul>
+<li>LMK_TARGET:<code>AMS.updateConfiguation()</code>的过程中调用<code>updateOomLevels()</code>方法，分别向<code>/sys/module/lowmemorykiller/parameters</code>的<code>minfree</code> 和 <code>adj</code>节点写入相应信息.</li>
+<li>LMK_PROCPRIO:<code>AMS.applyOomAdjLocked()</code>的过程中调动的<code>setOoAdj()</code>，向<code>/proc/&lt;pid&gt;/oom_score_adj</code>写入omadj,则直接返回。</li>
+<li>LMK_PROCREMOTE:<code>AMS.handleAppDieLocked</code>或者<code>AMS.cleanUpApplicationRecordLocked()</code>的过程,调用<code>remove()</code>,目前不做任何事，直接返回.</li>
+</ul>
+<h1 id="3-Kernel层"><a href="#3-Kernel层" class="headerlink" title="3.Kernel层"></a>3.Kernel层</h1><p>位于<code>/drivers/staging/Android/lowmemorykiller.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">shrinker</span> <span class="title">lowmem_shrinker</span> =&#123;</span></span><br><span class="line">    .scan_objects =lowmem_scan;</span><br><span class="line">	.count_objects=lowmeme_count;</span><br><span class="line">	.seeks=DEFAULT_SEEKS * <span class="number">16</span>;</span><br><span class="line">&#125;;</span><br><span class="line"> <span class="keyword">static</span> <span class="keyword">int</span> __<span class="function">init <span class="title">lowmem_init</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">	register_shrinker(&amp;lowmem_shrinker);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> __<span class="function"><span class="built_in">exit</span> <span class="title">lowmem_exit</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">	unregister_shrinker(&amp;lowmem_shrinker);</span><br><span class="line">&#125;</span><br><span class="line">module_init(lowmem_init);</span><br><span class="line">module_exit(lowmem_exit);</span><br></pre></td></tr></table></figure>
+<p>LMK驱动通过注册shrinker实现的，shrinker是linux kernel标准的回收内存page的机制，由内核线程kswapd负责控制。</p>
+<p>当内存不足时kswapd线程会边里一张shrinker链表，并回调已注册的shrinker函数来回收内存page,kswpad还会周期性唤醒来执行内存操作。每个zone维护<code>active_list</code>和<code>inactive_list</code>，内核根据页面活动状态将page在这两个链表之间移动，最后通过shrink_slab和shrink_zone来回收内存页。</p>
+<h2 id="3-1-Lowmem-count"><a href="#3-1-Lowmem-count" class="headerlink" title="3.1 Lowmem_count"></a>3.1 Lowmem_count</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="title">lowmem_count</span><span class="params">(struct shrinker* s,struct shrink_control *sc)</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> global_page_state(NR_ACTIVE_ANON)+</span><br><span class="line">		global_page_state(BR_ACTIVE_FILE)+</span><br><span class="line">		global_page_state(NR+INACTIVE+ANON)+</span><br><span class="line">		global_page_state(NR_INACTIVE_FILE);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ANON</code>代表匿名映射，没有后备存储器；<code>FILE</code>代表文件映射；<code>内存映射</code>计算公式=<code>活动匿名内存</code>+<code>活动文件内存</code>+<code>不活动匿名内存</code>+<code>不活动文件内存</code>.</p>
+<h2 id="3-2-lowmem-scan"><a href="#3-2-lowmem-scan" class="headerlink" title="3.2 lowmem_scan"></a>3.2 lowmem_scan</h2><p>当触发lmkd，则先杀<code>oom_score_adj</code>最大的进程，当oom_adj相等时，则选择rss最大的进程。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="title">lowmem_scan</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">struct shrinker*s,struck shrinker_control *sc</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span> *<span class="title">tsk</span>,*<span class="title">selected</span>=<span class="title">NULL</span>;</span></span><br><span class="line">	unsigne <span class="keyword">long</span> rem=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">int</span> tasksize,i,minfree=<span class="number">0</span>,selected_tasksize=<span class="number">0</span>;</span><br><span class="line">	<span class="keyword">short</span> min_score_ajd=OOM_SCORE_ADJ_MAX+<span class="number">1</span>;</span><br><span class="line">	<span class="keyword">int</span> array_size=ARRAT_SIZE(lowmem_adj);</span><br><span class="line">	<span class="comment">//获取当前剩余内存大小</span></span><br><span class="line">	<span class="keyword">int</span> other_free=global_page_state(NR_FREE_PAGES)-totalreserve_pages;</span><br><span class="line">	<span class="keyword">int</span> other_file=global_page_state(NR_FILE_PAGES)-global_page_state(NR_SHMEM)-</span><br><span class="line">		total_swapcache_pages();</span><br><span class="line">	<span class="comment">//获取数组大小</span></span><br><span class="line">	<span class="keyword">if</span>(lowmem_adj_size&lt;array_size)&#123;</span><br><span class="line">		array_size=lowmem_adj_size;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span>(lowmem_minfree_size&lt;array_size)</span><br><span class="line">		array_size=lowmem_minfree_size;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//遍历lowmem_minfree数组找出</span></span><br><span class="line">	<span class="keyword">for</span>(i =<span class="number">0</span>;i&lt;array_size;i++)&#123;</span><br><span class="line">		minfree=lowmem_minfree[i];</span><br><span class="line">		<span class="keyword">if</span>(other_free&lt;minfree &amp;&amp; other_file&lt;minfree)&#123;</span><br><span class="line">			min_score_adj=lowmem_adj[i];</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span>(min_score_adj ==OOM_SCORE_ADJ_MAX+<span class="number">1</span>)&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	selected_oom_score_adj =min_score_adj;</span><br><span class="line">	rcu_read_lock();</span><br><span class="line">	for_each_process(tsk)&#123;</span><br><span class="line">		<span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span>*<span class="title">p</span>;</span></span><br><span class="line">		<span class="keyword">short</span> oom_score_adj;</span><br><span class="line">		<span class="keyword">if</span>(tsk-&gt;flags&amp; PF_KTHREAD)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">		p=find_lock_task_mm(tsk);</span><br><span class="line">		<span class="keyword">if</span>(!p)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">		<span class="keyword">if</span>(task_tsk_thread_flag(p,TIF_MEMDIE)&amp;&amp;</span><br><span class="line">			time_before_eq(jiffies,lowmem_deathpending_timeout))&#123;</span><br><span class="line">			task_unlock(p);</span><br><span class="line">			rcu_read_unlock();</span><br><span class="line">			<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	oom_score_adj=p-&gt;signal-&gt;oom_score_adj;</span><br><span class="line">	<span class="comment">//小于目标adj进程，则忽略</span></span><br><span class="line">	<span class="keyword">if</span>(oom_score_adj&lt;min_score_adj)&#123;</span><br><span class="line">		task_unlock(p);</span><br><span class="line">		<span class="keyword">continue</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//算法关键，选择oom_score_adj最大的进程中，并且rss内存最大的进程</span></span><br><span class="line">	<span class="keyword">if</span>(selected)&#123;</span><br><span class="line">		<span class="keyword">if</span>(oom_score_adj&lt;selected_oom_score_adj)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">		<span class="keyword">if</span>(oom_score_adj==selected_oom_score_ajd&amp;&amp; tasksize&lt;=selected_tasksize)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	selected=p;</span><br><span class="line">	secleted_tasksize=tasksize;</span><br><span class="line">	selected_oom_score_adj=oom_score_adj;</span><br><span class="line">	lowmem_print(<span class="number">2</span>,<span class="string">"selected ‘%s’ adj %hd ,size %d ,to kill\n"</span>,,</span><br><span class="line">	p-&gt;comm,p-&gt;pid,oom_score_adj,tasksize);</span><br><span class="line">	<span class="keyword">if</span>(selected)&#123;</span><br><span class="line">		<span class="keyword">long</span> cache_size=other_file*(<span class="keyword">long</span>)(PAGE_SIZE/<span class="number">1024</span>);</span><br><span class="line">		<span class="keyword">long</span> cache_limit=minfree*(<span class="keyword">long</span>)(PAGE_SIZE/<span class="number">10324</span>);</span><br><span class="line">		<span class="keyword">long</span> <span class="built_in">free</span>=other_free*(<span class="keyword">long</span>)(PAGE_SIZE/<span class="number">1024</span>);</span><br><span class="line">		<span class="comment">//输出kill 的log</span></span><br><span class="line">		lowmem_print(<span class="number">1</span>,<span class="string">"killing %s %d ,adj %hd,\n"</span>);</span><br><span class="line">		lowmem_deathpending_timeout=jiffies+HZ;</span><br><span class="line">		set_tsk_thread_flag(secleted,TIG_MEMDIE);</span><br><span class="line">		<span class="comment">//向选中的目标进程发送signal 9 来杀掉目标进程</span></span><br><span class="line">		send_sig(SIGKILL,selceted,<span class="number">0</span>);</span><br><span class="line">		rem+=selceted_tasksize;</span><br><span class="line">	&#125;</span><br><span class="line">	rcu_read_unlock();</span><br><span class="line">	<span class="keyword">return</span> rem;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>lowmem_minfree</code>和<code>lowmem_adj[]</code>数组大小个数为6,通过如下两条命令:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">module_param_named(debug_level,lowmem_debug_level,uint,S_IRUGO|S_IWUSE)</span><br><span class="line">module_param_array_named(adj,lowmem_adj,short,&amp;lowmem_adj_size,S_IRUGO|S_IWUSE)</span><br></pre></td></tr></table></figure>
+<p>当如下节点变化，通过修改<code>lowmem_minfree[]</code>和<code>lowmem_adj[]</code>数组.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/sys/<span class="keyword">module</span>/lowmemorykiller/parameters/minfree</span><br><span class="line">/sys/<span class="keyword">module</span>/lowmemorykiller/parameters/adj</span><br></pre></td></tr></table></figure>
+<h1 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h1><p>从framework的ProcessList调整adj,通过socket通信将时间发送给native的守护进程lmkd；lmkd再根据具体的命令来执行相应的操作</p>
+<ul>
+<li>更新进程<code>oom_score_adj</code>的值和lowmemorykiller驱动参数<code>minfree</code>和<code>adj</code></li>
+</ul>
+<p>最后讲到了lowmemorykiller驱动，通过注册shrinker，借助linux标准的内存回收机制，根据当前系统可用内存以及参数配置(adj,minfree)来选取合适的selected_oom_score_adj，再从所有进程中选择adj大于该目标取值并占用rss内存最大的进程，将其杀掉，从而释放出内存。</p>
+<h2 id="4-1-lmkd参数"><a href="#4-1-lmkd参数" class="headerlink" title="4.1 lmkd参数"></a>4.1 lmkd参数</h2><ul>
+<li>oom_adj:代表进程的优先级，数值越大，优先级越低，越容易被杀，取值范围<code>[-16,15]</code><ul>
+<li><code>/proc/&lt;pid&gt;/oom_adj</code></li>
+</ul>
+</li>
+<li>oom_score_adj:取值范围<code>[-1000,1000]</code><ul>
+<li><code>/proc/&lt;pid&gt;om_score_adj</code></li>
+</ul>
+</li>
+<li>oom_score:lmkd策略中貌似并没有看下用的地方，应该是oom才会调用<ul>
+<li><code>/proc/&lt;pid&gt;/oom_score</code></li>
+</ul>
+</li>
+</ul>
+<p>对于<code>oom_adj</code>与<code>oom_score_adj</code>通过方法<code>lowmem_oom_adj_to_oom_score_adj()</code>建立一定映射关系:</p>
+<ul>
+<li>当<code>oom_adj=15</code>,则<code>oom_score_adj=1000；</code></li>
+<li>当<code>oom_adj&lt;15</code>,则<code>oom_score_adj=oo_adj*1000/17</code></li>
+</ul>
+<h2 id="4-2-driver参数"><a href="#4-2-driver参数" class="headerlink" title="4.2 driver参数"></a>4.2 driver参数</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/sys/module/lowmemorykiller/parameters/minfree(代表page个数)</span><br><span class="line">/sys/module/lowmemorykiller/parameters/adj(代表oom_score_adj)</span><br></pre></td></tr></table></figure>
+<p>举例说明：</p>
+<ul>
+<li>参数设置：<ul>
+<li><code>1,6</code>写入节点<code>/sys/module/lowmemorykiller/parameters/adj</code></li>
+<li><code>1024,8192</code>写入节点<code>/sys/module/lowmemorykiller/parameters/minfree</code></li>
+</ul>
+</li>
+<li>策略解读:<ul>
+<li>当系统可用内存低语8192个pages时，则会杀掉<code>oom_score_adj&gt;=6</code>的进程</li>
+<li>当系统可用内存低于1024个pages时，会杀掉<code>oom_score_adj&gt;=1</code>的进程。</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    <div>
+        
+            <div>
+    
+        <br>
+        <div style="text-align:center;color:#200000;font-size:30px;">-------------End-Thanks-------------</div>
+    
+</div>
+
+
+        
+    </div>
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android-内存管理/" rel="tag"><i class="fa fa-tag"></i> Android 内存管理</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/10/pm/" rel="next" title="pm">
+                <i class="fa fa-chevron-left"></i> pm
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/21/test-file/" rel="prev" title="test_file">
+                test_file <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Melvin">
+            
+              <p class="site-author-name" itemprop="name">Melvin</p>
+              <p class="site-description motion-element" itemprop="description">Learn Android/Linux OS</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">33</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/babymelvin" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:hang.yasuo@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://my.csdn.net/" target="_blank" title="CSDN"><i class="fa fa-fw fa-globe"></i>CSDN</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-概述"><span class="nav-text">1.概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-源码分析"><span class="nav-text">2.源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-framwork层"><span class="nav-text">2.1 framwork层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-native层"><span class="nav-text">2.2 native层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-1-处理事件"><span class="nav-text">2.2.1 处理事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-小结"><span class="nav-text">2.3 小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-Kernel层"><span class="nav-text">3.Kernel层</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-Lowmem-count"><span class="nav-text">3.1 Lowmem_count</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-lowmem-scan"><span class="nav-text">3.2 lowmem_scan</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-总结"><span class="nav-text">4.总结</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-lmkd参数"><span class="nav-text">4.1 lmkd参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-driver参数"><span class="nav-text">4.2 driver参数</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" style="background:#F8F8F8">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DO WAHTEVER YOU WANT TO DO!</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.3.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

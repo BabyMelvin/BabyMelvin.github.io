@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="0.介绍kernel有很多的同步和异步机制，做简单整理，力求能够熟练使用。">
+<meta name="keywords" content="KernelAPI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kernel sync and async">
+<meta property="og:url" content="http://yoursite.com/2018/11/08/Kernel-sync/index.html">
+<meta property="og:site_name" content="杭">
+<meta property="og:description" content="0.介绍kernel有很多的同步和异步机制，做简单整理，力求能够熟练使用。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-02-20T14:31:34.429Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kernel sync and async">
+<meta name="twitter:description" content="0.介绍kernel有很多的同步和异步机制，做简单整理，力求能够熟练使用。">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="杭" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/08/Kernel-sync/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Kernel sync and async | 杭</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">杭</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Practice makes perfect!</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/08/Kernel-sync/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Melvin">
+      <meta itemprop="description" content="Learn Android/Linux OS">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="杭">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Kernel sync and async
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-11-08 08:47:55" itemprop="dateCreated datePublished" datetime="2018-11-08T08:47:55+08:00">2018-11-08</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-02-20 22:31:34" itemprop="dateModified" datetime="2019-02-20T22:31:34+08:00">2019-02-20</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Kernel/" itemprop="url" rel="index"><span itemprop="name">Kernel</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="0-介绍"><a href="#0-介绍" class="headerlink" title="0.介绍"></a>0.介绍</h1><p>kernel有很多的同步和异步机制，做简单整理，力求能够熟练使用。</p>
+<a id="more"></a>
+<h1 id="1-同步机制"><a href="#1-同步机制" class="headerlink" title="1.同步机制"></a>1.同步机制</h1><ul>
+<li><code>并发</code>：多个执行单元同时被执行</li>
+<li><code>竞态</code>:并发的执行单元对共享资源(硬件资源和软件上的全局变量等)的访问导致竞争状态。<br>并发与竞态。</li>
+</ul>
+<p>假设有2个进程试图同时向一个设备的相同位置写入数据，就会造成数据混乱。处理并发常用的技术:<code>加锁</code>或者<code>互斥</code>，即确保在任何时间只有一个执行单元可以操作共享资源。在Linux内核中主要通过<code>semaphore</code>机制和<code>spin_lock</code>机制实现。</p>
+<h2 id="1-1-信号量"><a href="#1-1-信号量" class="headerlink" title="1.1 信号量"></a>1.1 信号量</h2><p>Linux内核信号量在概念和原理上与用户信号量一样的，但是它不能在内核之外使用，<code>它是一种睡眠锁</code>.</p>
+<p>如果有一个任务想要获得已经被占用的信号量时，信号量会将这个<code>进程放入一个等待队列</code>，然后让其睡眠当持有信号量的进程将其释放后，处与等待队列中任务被唤醒，并让其获得信号量。</p>
+<ul>
+<li>信号量在创建时需要<code>设置一个初始值</code>，表示<strong>允许几个任务同时访问该信号量</strong>保护的共享资源。初始值为1就变成互斥锁(Mutex)，即同时只能有一个任务可以访问信号量保护的共享资源。</li>
+<li>当任务访问完被信号量保护的共享资源后，必须释放信号量。释放信号量通常把信号量的值加1实现，如果释放后信号量的值为非正数，表明有任务任务等待当前信号量，因此要唤醒信号量的任务。</li>
+</ul>
+<p>信号量的实现也是与体系结构相关的，定义在<code>&lt;asm/semaphore.h&gt;</code>中，struct semaphore类型用类表示信号量。</p>
+<p>1.定义信号量</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">semaphore</span> <span class="title">sem</span>;</span></span><br></pre></td></tr></table></figure>
+<p>2.初始化信号量</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">void sema_init(struct semaphore*sem,int val) 该函数用于初始化信号量设置信号量的初值，它设置信号量sem的值为val;</span><br></pre></td></tr></table></figure>
+<p><strong>互斥锁</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">init_MUTEX</span><span class="params">(struct semaphore*sem)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>该函数用于初始化一个互斥锁，即它把信号量sem的值设置为1.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">init_MUTEX_LOCKED</span><span class="params">(struct semaphore*sem)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>该函数也用于初始化一个互斥锁，但它把信号量sem的值设置为0,即一开始就处于已锁状态。</p>
+<p>定义与初始化工作可由如下宏完成： </p>
+<ul>
+<li><code>DECLARE_MUTEX(name)</code>定义一个信号量name，并初始话它的值为1. </li>
+<li><code>DECLARE_MUTEXT_LOCKED(name)</code>定义一个信号量name，但把它的初始值设置为0,即创建时就处于已锁的状态。</li>
+</ul>
+<p>3.获取信号量</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">down</span><span class="params">(struct semaphore*sem)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>获取信号量sem,<strong>可能会导致进程睡眠</strong>，<strong>因此不能在中断上下文使用该函数</strong>。 该函数将把sem的值减1:</p>
+<ul>
+<li>如果信号量的sem值为非负，就直接返回.</li>
+<li>否则调用者将被挂起。<strong>直到别的任务释放该信号量才能继续运行</strong></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">down_interruptible</span><span class="params">(struct semaphore*sem)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>获取信号量sem.如果信号量不可用，进程将被置为<code>TASK_INTERRUPTIBLE</code>类型的睡眠状态。该函数返回值来区分正常返回还是被信号中断返回:</p>
+<ul>
+<li>如果返回0，表示获得信号量正常返回</li>
+<li>如果被信号打断，返回<code>-EINTR</code>.</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">dow_killable</span><span class="params">(struct semaphore*sem)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>获取信号量sem,如果信号量不可用，进程将被设置为<code>TASK_KILLABLE</code>类型的睡眠状态. 注：<code>down()</code>函数已经不建议继续使用。建议使用<code>down_killable()</code>或d<code>own_interruptible()</code>函数。</p>
+<p>4.释放信号量</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">up</span><span class="params">(struct semaphore*sem)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>该函数释放信号量sem,即把sem的值加1,如果sem的值为非正数，表明有任务等待该信号量，因此唤醒这些等待者。</p>
+<h2 id="1-2-自旋锁"><a href="#1-2-自旋锁" class="headerlink" title="1.2 自旋锁"></a>1.2 自旋锁</h2><p><strong>自旋锁最多只能被一个可执行单元持有</strong>。自旋锁不会引起调用者睡眠,如果一个执行难线程试图获得一个已经持有的自旋锁，那么线程就会一直进行忙循环，一直等待下去在那里看是否该自旋锁的保持者已经释放了锁，“自旋”就是这个意思。</p>
+<p>1.初始化<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spin_lock_init(x);</span><br></pre></td></tr></table></figure></p>
+<p>该宏用于初始化自旋锁x，自旋锁在使用前必须先初始化。</p>
+<p>2.获取锁</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spin_lock(x)</span><br></pre></td></tr></table></figure>
+<p>获取自旋锁lock，如果成功，立即获得锁，并马上返回，否则它将一直自旋在那里，直到该自旋锁的保持者释放。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spin_trylock(x)</span><br></pre></td></tr></table></figure>
+<p>试图获取自旋锁lock，如果能立即获得锁，并返回真，否则立即返回假。它不会一直等待释放.</p>
+<p>3.释放锁</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spin_unlock(x)</span><br></pre></td></tr></table></figure>
+<p>释放自旋锁lock,它与<code>spin_lock</code>或<code>spin_trylock</code>配对。<code>锁用完要进行释放</code></p>
+<h2 id="1-3-信号量与自旋锁比较"><a href="#1-3-信号量与自旋锁比较" class="headerlink" title="1.3 信号量与自旋锁比较"></a>1.3 信号量与自旋锁比较</h2><ul>
+<li>信号量可能允许有多个持有者，而自旋锁任何时候只能允许一个持有者.当然也有信号量叫互斥信号量(只能一个持有者)，允许有多个持有者的信号量叫计数信号量</li>
+<li>信号量适合保持较长时间，而自旋锁适合于保持时间非常短的情况，在实际应用中自旋锁控制代码只有几行，而持有自旋锁的时间也不会超过两次上下文切换的时间，因此线程一旦要进行切换，就至少花费出人两次，自旋锁的占用时间如果远远长于两次上下文切换，我们就应该选择信号量。</li>
+</ul>
+<h1 id="2-异步"><a href="#2-异步" class="headerlink" title="2.异步"></a>2.异步</h1><p>主要使用队列来形成一种类似”缓冲”，从而产生异步。这个缓冲可以是数据，可以是”函数”。</p>
+<h2 id="2-1-等待队列wait-queue"><a href="#2-1-等待队列wait-queue" class="headerlink" title="2.1 等待队列wait_queue"></a>2.1 等待队列wait_queue</h2><p>可以使用等待队列来实现进程阻塞，在阻塞进程时，将进程放入等待队列，当唤醒进程时，从等待队列中取出进程。</p>
+<p>1.定义和初始化</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">wait_queue_head_t</span> my_queue;</span><br><span class="line">init_waitqueue_head(&amp;my_queue);</span><br></pre></td></tr></table></figure>
+<p>可以使用宏来完成，定义和初始化过程</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DECLARE_WAIT_QUEUE_HEAD(my_queue);</span><br></pre></td></tr></table></figure>
+<p>2.睡眠</p>
+<p><strong>a.有条件睡眠</strong></p>
+<ul>
+<li><code>wait_event(queue,condition)</code>:当condition为真时，立即返回；否则让进程进入<code>TASK_UNINTERRUPTIBLE</code>模式的睡眠，并挂在queue参数所指定的等待队列上。</li>
+<li><code>wait_event_interruptible(queue,conditon)</code>:当condition为真时，立即返回；否则让进程<code>TASK_INTERRUPTIBLE</code>的睡眠，并挂起queue参数所指定的等待队列</li>
+<li><code>int wait_event_killable(wait_queue_t queue,condition)</code>:当condition为真时，立即返回；否则让进程进入<code>TASK_KILLABLE</code>的睡眠，并挂在queue参数所指定的等待队列上。</li>
+</ul>
+<p><strong>b.无条件睡眠(老版本，建议不再使用)</strong></p>
+<ul>
+<li><code>sleep_on(wait_queue_head_t *q)</code>:让进程进入不可中断的睡眠，并把它放入等待队列q.</li>
+<li><code>interruptible_sleep_on(wait_queue_head_t *q)</code>:让进程进入可中断的睡眠，并把它放入等待队列q。</li>
+</ul>
+<p>3.唤醒</p>
+<ul>
+<li><code>wake_up(wait_queue_t *q)</code>:从等待队列q中唤醒状态为<code>TASK_UNINTERRUPTIBLE</code>,<code>TASK_INTERRUPTIBLE</code>,<code>TASK_KILLABLE</code>的所有进程。</li>
+<li><code>wake_up_interruptible(wait_queue_t*q)</code>:从等待队列q中唤醒状态为<code>TASK_INTERRUPTIBLE</code>的进程。</li>
+</ul>
+<h2 id="2-2completion"><a href="#2-2completion" class="headerlink" title="2.2completion"></a>2.2completion</h2><p>内核编程中常见的一种模式是，<strong>在当前线程之外初始化某个活动</strong>，<strong>然后等待该活动的结束</strong>。内核中提供了另外一种机制——completion接口。<strong>Completion是一种轻量级的机制</strong>，他允许一个线程告诉另一个线程某个工作已经完成。实现基于等待队列。</p>
+<p>1.结构与初始化</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">completion</span> &#123;</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> done;     <span class="comment">/*用于同步的原子量*/</span></span><br><span class="line">	<span class="keyword">wait_queue_head_t</span> wait;<span class="comment">/*等待事件队列*/</span></span><br><span class="line">&#125; x;</span><br></pre></td></tr></table></figure>
+<p>函数<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">init_completion</span><span class="params">(x)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>宏实现</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DECLARE_COMPLETION(work)</span><br></pre></td></tr></table></figure>
+<p>2.等待</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wait_for_completion(work);</span><br></pre></td></tr></table></figure>
+<p>3.完成</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">completion(work);</span><br></pre></td></tr></table></figure>
+<h2 id="2-3-工作队列work-struct"><a href="#2-3-工作队列work-struct" class="headerlink" title="2.3 工作队列work_struct"></a>2.3 工作队列work_struct</h2><p>工作队列一般用来做滞后的工作，比如在中断里面要做很多事，但是比较耗时，<strong>这时就可以把耗时的工作放到工作队列</strong>。说白了就是<code>系统延时调度</code>的一个自定义函数。</p>
+<p>工作队列的使用分两种情况:</p>
+<ul>
+<li><code>利用系统</code>共享的工作队列来添加自己的工作，这种情况处理函数<code>不能消耗太多时间</code>,这样会影响共享队列中其他任务的处理;</li>
+<li>另外一种是创建自己的工作队列并添加工作。</li>
+</ul>
+<h3 id="2-3-1-使用系统"><a href="#2-3-1-使用系统" class="headerlink" title="2.3.1 使用系统"></a>2.3.1 使用系统</h3><p>1.声明工作函数</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">my_func</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+<p>2.创建一个工作结构体变量，并将处理函数和参数的入口地址赋给这个工作结构体变量</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//编译时创建名为my_work的结构体变量</span></span><br><span class="line"><span class="comment">//并把 函数入口地址 和 参数地址 赋给它;</span></span><br><span class="line">DECLARE_WORK(my_work,my_func,&amp;data);</span><br></pre></td></tr></table></figure>
+<p>如果不想要在编译时就用<code>DECLARE_WORK()</code>创建并初始化工作结构体变量，也可以在程序运行时再用<code>INIT_WORK()</code>创建：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//创建一个名为my_work的结构体变量，创建后才能使用INIT_WORK()</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">work_struct</span> <span class="title">my_work</span>;</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//初始化已经创建的my_work，其实就是往这个结构体变量中添加处理函数的入口地址和data的地址</span></span><br><span class="line"><span class="comment">// 通常在驱动的open函数中完成</span></span><br><span class="line">INIT_WORK(&amp;my_work,my_func,&amp;data);</span><br></pre></td></tr></table></figure>
+<p>3.将工作结构体变量添加入系统的共享工作队列</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">schedule_work(&amp;my_work); <span class="comment">//添加入队列的工作完成后会自动从队列中删除</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-3-2-创建自己的工作队列来添加工作"><a href="#2-3-2-创建自己的工作队列来添加工作" class="headerlink" title="2.3.2 创建自己的工作队列来添加工作"></a>2.3.2 创建自己的工作队列来添加工作</h3><p>1.声明工作处理函数和一个指向工作队列的指针</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">my_func</span><span class="params">()</span></span>;</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">workqueue_struct</span> *<span class="title">p_queue</span>;</span></span><br></pre></td></tr></table></figure>
+<p>2.创建自己的工作队列和工作结构体变量(通常在<code>open</code>函数中完成)</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//创建一个名为my_queue的工作队列并把工作队列的入口地址赋给声明的指针</span></span><br><span class="line">p_queue=create_workqueue(<span class="string">"my_queue"</span>); </span><br><span class="line"></span><br><span class="line"><span class="comment">//创建一个工作结构体变量并初始化，和第一种情况的方法一样</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">work_struct</span> <span class="title">my_work</span>;</span></span><br><span class="line">INIT_WORK(&amp;my_work, my_func, &amp;data);</span><br></pre></td></tr></table></figure>
+<p>3.将工作添加入自己创建的工作队列等待执行</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//作用与schedule_work()类似</span></span><br><span class="line"><span class="comment">//不同的是将工作添加入p_queue指针指向的工作队列而不是系统共享的工作队列</span></span><br><span class="line">queue_work(p_queue, &amp;my_work);</span><br></pre></td></tr></table></figure>
+<p>4.第四步：删除自己的工作队列</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">destroy_workqueue(p_queue); <span class="comment">//一般是在close函数中删除</span></span><br></pre></td></tr></table></figure>
+<h2 id="2-4-tasklet"><a href="#2-4-tasklet" class="headerlink" title="2.4 tasklet"></a>2.4 tasklet</h2><p>小进程，主要用于执行一些小任务，对这些任务使用全功能进程比较浪费。也称为中断下半部，<strong>在处理软中断时执行</strong>。</p>
+<p>1.初始化和结构体</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tasklet_struct</span>&#123;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tasklet_struct</span>* <span class="title">next</span>;</span></span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> state;</span><br><span class="line">	<span class="keyword">atomic_t</span> count;</span><br><span class="line">	<span class="keyword">void</span> (*func)(<span class="keyword">unsigned</span> <span class="keyword">long</span>);</span><br><span class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> data;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>函数：<code>tasklet_init(t,func,data)</code></p>
+<p>宏：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">DECLARE_TASKLET(name,func,data);<span class="comment">//tasklet is scheduled for executation</span></span><br><span class="line"><span class="comment">//两种状态：TASKLET_STATE_SCHED</span></span><br><span class="line"><span class="comment">//TASKLET_STATE_RUN//tasklet is running(SMP only)</span></span><br></pre></td></tr></table></figure></p>
+<p>2.执行:<code>tasklet_schedule(t)</code><br>3.销毁</p>
+<p>函数：<br>宏：</p>
+<h2 id="2-5-工作队列和tasklet区别"><a href="#2-5-工作队列和tasklet区别" class="headerlink" title="2.5 工作队列和tasklet区别"></a>2.5 工作队列和tasklet区别</h2><p>Linux2.6内核使用了不少工作队列来处理任务，他在使用上和tasklet最大的不同是<strong>工作队列的函数可以使用休眠</strong>，而tasklet的函数是不允许使用休眠的。</p>
+
+      
+    </div>
+
+    
+    <div>
+        
+            <div>
+    
+        <br>
+        <div style="text-align:center;color:#200000;font-size:30px;">-------------End-Thanks-------------</div>
+    
+</div>
+
+
+        
+    </div>
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/KernelAPI/" rel="tag"><i class="fa fa-tag"></i> KernelAPI</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/24/WMS/" rel="next" title="WMS">
+                <i class="fa fa-chevron-left"></i> WMS
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/02/20/hello-world/" rel="prev" title="hexo introduce">
+                hexo introduce <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Melvin">
+            
+              <p class="site-author-name" itemprop="name">Melvin</p>
+              <p class="site-description motion-element" itemprop="description">Learn Android/Linux OS</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">33</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/babymelvin" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:hang.yasuo@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://my.csdn.net/" target="_blank" title="CSDN"><i class="fa fa-fw fa-globe"></i>CSDN</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#0-介绍"><span class="nav-text">0.介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#1-同步机制"><span class="nav-text">1.同步机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-信号量"><span class="nav-text">1.1 信号量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-自旋锁"><span class="nav-text">1.2 自旋锁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-信号量与自旋锁比较"><span class="nav-text">1.3 信号量与自旋锁比较</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-异步"><span class="nav-text">2.异步</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-等待队列wait-queue"><span class="nav-text">2.1 等待队列wait_queue</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2completion"><span class="nav-text">2.2completion</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-工作队列work-struct"><span class="nav-text">2.3 工作队列work_struct</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-1-使用系统"><span class="nav-text">2.3.1 使用系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-2-创建自己的工作队列来添加工作"><span class="nav-text">2.3.2 创建自己的工作队列来添加工作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-tasklet"><span class="nav-text">2.4 tasklet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-工作队列和tasklet区别"><span class="nav-text">2.5 工作队列和tasklet区别</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" style="background:#F8F8F8">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DO WAHTEVER YOU WANT TO DO!</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.3.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

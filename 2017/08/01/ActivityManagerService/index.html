@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="0.概述AMS是Android中最核心的服务，主要负责系统中四大组件的启动、切换、调度及应用进程的管理和调度等工作，其职责与操作系统中的进程管理和调度模块相类似，因此它在Android中非常重要。">
+<meta name="keywords" content="Android组件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ActivityManagerService">
+<meta property="og:url" content="http://yoursite.com/2017/08/01/ActivityManagerService/index.html">
+<meta property="og:site_name" content="杭">
+<meta property="og:description" content="0.概述AMS是Android中最核心的服务，主要负责系统中四大组件的启动、切换、调度及应用进程的管理和调度等工作，其职责与操作系统中的进程管理和调度模块相类似，因此它在Android中非常重要。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2017/08/01/ActivityManagerService/2018031809480920.png">
+<meta property="og:image" content="http://yoursite.com/2017/08/01/ActivityManagerService/20180318095541276.png">
+<meta property="og:updated_time" content="2019-02-02T11:21:31.738Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ActivityManagerService">
+<meta name="twitter:description" content="0.概述AMS是Android中最核心的服务，主要负责系统中四大组件的启动、切换、调度及应用进程的管理和调度等工作，其职责与操作系统中的进程管理和调度模块相类似，因此它在Android中非常重要。">
+<meta name="twitter:image" content="http://yoursite.com/2017/08/01/ActivityManagerService/2018031809480920.png">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="杭" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/01/ActivityManagerService/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>ActivityManagerService | 杭</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">杭</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Practice makes perfect!</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/08/01/ActivityManagerService/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Melvin">
+      <meta itemprop="description" content="Learn Android/Linux OS">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="杭">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ActivityManagerService
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2017-08-01 03:47:00" itemprop="dateCreated datePublished" datetime="2017-08-01T03:47:00+08:00">2017-08-01</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-02-02 19:21:31" itemprop="dateModified" datetime="2019-02-02T19:21:31+08:00">2019-02-02</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="0-概述"><a href="#0-概述" class="headerlink" title="0.概述"></a>0.概述</h1><p>AMS是Android中<code>最核心的服务</code>，主要负责系统中<code>四大组件的启动</code>、<code>切换</code>、<code>调度</code>及<code>应用进程的管理和调度</code>等工作，其职责与操作系统中的进程管理和调度模块相类似，因此它在Android中非常重要。</p>
+<a id="more"></a>
+<ul>
+<li><code>ActivityManagerService extends ActivityManagerNative implements Watchdog.Monitor, BatteryStatsImpl.BatteryCallback</code></li>
+<li>客户端使用ActivityManager类。由于AMS是系统核心服务，很多API不能开放供客户端使用，所以设计者没有让ActivityManager直接加入AMS家族。在ActivityManager类内部通过调用AMN的getDefault函数得到一个ActivityManagerProxy对象，通过它可与AMS通信。</li>
+</ul>
+<h1 id="1-AMS启动"><a href="#1-AMS启动" class="headerlink" title="1.AMS启动"></a>1.AMS启动</h1><p>AMS由SystemServer的ServerThread线程创建，提取它的调用轨迹，代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//path:SystemServer.java::initAndLoop()</span></span><br><span class="line"><span class="comment">//1.Boolean:factoryTest SystemProperties.get("ro.factorytest");是否厂测</span></span><br><span class="line">Context context=ActivityManagerService.main(factoryTest);</span><br><span class="line"><span class="comment">//2.setSystemProcess：这样SystemServer进程可加到AMS中，并被它管理</span></span><br><span class="line">ActivityManagerService.setSystemProcess();</span><br><span class="line"><span class="comment">//3.installSystemProviders：将SettingsProvider放到SystemServer进程中来运行</span></span><br><span class="line">ActivityManagerService.installSystemProviders();</span><br><span class="line"><span class="comment">//4.在内部保存WindowManagerService（以后简称WMS）</span></span><br><span class="line">ActivityManagerService.self().setWindowManager(wm);</span><br><span class="line"><span class="comment">//5.AMS是系统的核心，只有它准备好后，才能调用其他服务的systemReady,少量之前那完成。</span></span><br><span class="line"> ActivityManagerService.self().systemReady(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       Slog.i(TAG, <span class="string">"Making services ready"</span>);</span><br><span class="line">       ActivityManagerService.self().startObservingNativeCrashes();</span><br><span class="line">      <span class="comment">// 如此，状态栏就准备好了</span></span><br><span class="line">      <span class="comment">//SystemUIService由SystemUi.apk提供，它实现了系统的状态栏。</span></span><br><span class="line">       <span class="keyword">if</span> (!headless) startSystemUi(contextF);</span><br><span class="line">       <span class="keyword">if</span> (mountServiceF != <span class="keyword">null</span>) mountServiceF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (batteryF != <span class="keyword">null</span>) batteryF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (networkManagementF != <span class="keyword">null</span>) networkManagementF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (networkStatsF != <span class="keyword">null</span>) networkStatsF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (networkPolicyF != <span class="keyword">null</span>) networkPolicyF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (connectivityF != <span class="keyword">null</span>) connectivityF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (dockF != <span class="keyword">null</span>) dockF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (usbF != <span class="keyword">null</span>) usbF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (twilightF != <span class="keyword">null</span>) twilightF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (uiModeF != <span class="keyword">null</span>) uiModeF.systemReady();</span><br><span class="line">       <span class="keyword">if</span> (recognitionF != <span class="keyword">null</span>) recognitionF.systemReady();</span><br><span class="line">       Watchdog.getInstance().start();</span><br><span class="line">      <span class="comment">// <span class="doctag">TODO:</span>It is now okay to let the various system services start their third party code...</span></span><br><span class="line">       <span class="keyword">if</span> (appWidgetF != <span class="keyword">null</span>) appWidgetF.systemRunning(safeMode);</span><br><span class="line">       <span class="keyword">if</span> (wallpaperF != <span class="keyword">null</span>) wallpaperF.systemRunning();</span><br><span class="line">       <span class="keyword">if</span> (immF != <span class="keyword">null</span>) immF.systemRunning(statusBarF);     </span><br><span class="line">       <span class="keyword">if</span> (locationF != <span class="keyword">null</span>) locationF.systemRunning();</span><br><span class="line">       <span class="keyword">if</span> (countryDetectorF != <span class="keyword">null</span>) countryDetectorF.systemRunning();</span><br><span class="line">       <span class="keyword">if</span> (networkTimeUpdaterF != <span class="keyword">null</span>) networkTimeUpdaterF.systemRunning();</span><br><span class="line">       <span class="keyword">if</span> (commonTimeMgmtServiceF != <span class="keyword">null</span>) commonTimeMgmtServiceF.systemRunning();</span><br><span class="line">        ...</span><br><span class="line">       <span class="comment">// For debug builds, log event loop stalls to dropbox for analysis.</span></span><br><span class="line">        <span class="keyword">if</span> (StrictMode.conditionallyEnableDebugLogging()) &#123;</span><br><span class="line">            Slog.i(TAG, <span class="string">"Enabled StrictMode for system server main thread."</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        Looper.loop();</span><br><span class="line">        Slog.d(TAG, <span class="string">"System ServerThread is exiting!"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将分析除了4外的掉用。</p>
+<h2 id="1-1-ActivityManagerService-main"><a href="#1-1-ActivityManagerService-main" class="headerlink" title="1.1 ActivityManagerService.main"></a>1.1 ActivityManagerService.main</h2><p>AMS的main函数将返回一个<code>Context</code>类型的对象，该对象在SystemServer中被其他服务大量使用。<code>Context</code>，顾名思义，代表了一种上下文环境，有了这个环境，我们就可以做很多事情（例如获取该环境中的资源、Java类信息等）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//ActivityManagerService.java</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> Context <span class="title">main</span><span class="params">(<span class="keyword">int</span> factoryTest)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//线程中完成：</span></span><br><span class="line">    <span class="comment">//1.ActivityManagerService m = new ActivityManagerService();</span></span><br><span class="line">    <span class="comment">//mService = m;通知实例好了，则thr.mService!=null</span></span><br><span class="line">    AThread thr = <span class="keyword">new</span> AThread();</span><br><span class="line">    thr.start();</span><br><span class="line">    <span class="keyword">while</span> (thr.mService == <span class="keyword">null</span>) thr.wait();<span class="comment">//收到通知，继续</span></span><br><span class="line">    ActivityManagerService m = thr.mService;</span><br><span class="line">    mSelf = m;</span><br><span class="line">    <span class="comment">//2.ActivityThread它代表一个应用进程的主线程，其职责就是调度及执行在该线程中运行的四大组件。</span></span><br><span class="line">    ActivityThread at = ActivityThread.systemMain();</span><br><span class="line">    mSystemThread = at;</span><br><span class="line">    <span class="comment">//3.接口获取并操作Application对应的资源、类，甚至包含于Application中的四大组件。</span></span><br><span class="line">    Context context = at.getSystemContext();</span><br><span class="line">    context.setTheme(android.R.style.Theme_Holo);</span><br><span class="line">    m.mContext = context;</span><br><span class="line">    m.mFactoryTest = factoryTest;</span><br><span class="line">    m.mIntentFirewall = <span class="keyword">new</span> IntentFirewall(m.new IntentFirewallInterface());</span><br><span class="line">    <span class="comment">//AMS中用来管理Activity的启动和调度的核心类</span></span><br><span class="line">    m.mStackSupervisor = <span class="keyword">new</span> ActivityStackSupervisor(m, context, thr.mLooper);</span><br><span class="line">    m.mBatteryStatsService.publish(context);</span><br><span class="line">    m.mUsageStatsService.publish(context);</span><br><span class="line">    m.mAppOpsService.publish(context);</span><br><span class="line">    thr.mReady = <span class="keyword">true</span>;</span><br><span class="line">    thr.notifyAll();</span><br><span class="line">    <span class="comment">//4.启动startRunning函数</span></span><br><span class="line">    m.startRunning(<span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">    <span class="keyword">return</span> context;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在main函数中，完成mSystemThread等全局变量填充和调用了startRunning函数.。主要分析<code>ActivityManagerService</code>构造函数。<br>和几个全局变量。</p>
+<h3 id="1-1-1-AMS构造函数"><a href="#1-1-1-AMS构造函数" class="headerlink" title="1.1.1 AMS构造函数"></a>1.1.1 AMS构造函数</h3><p>AMS的构造函数的代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="title">ActivityManagerService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="comment">//创建广播队列(前台和后台队列)</span></span><br><span class="line">	mFgBroadcastQueue = <span class="keyword">new</span> BroadcastQueue(<span class="keyword">this</span>, <span class="string">"foreground"</span>, BROADCAST_FG_TIMEOUT, <span class="keyword">false</span>);</span><br><span class="line">	mBgBroadcastQueue = <span class="keyword">new</span> BroadcastQueue(<span class="keyword">this</span>, <span class="string">"background"</span>, BROADCAST_BG_TIMEOUT, <span class="keyword">true</span>);</span><br><span class="line">	 mBroadcastQueues[<span class="number">0</span>] = mFgBroadcastQueue;</span><br><span class="line">	 mBroadcastQueues[<span class="number">1</span>] = mBgBroadcastQueue;</span><br><span class="line">	<span class="comment">//service和provider</span></span><br><span class="line">	 mServices = <span class="keyword">new</span> ActiveServices(<span class="keyword">this</span>);</span><br><span class="line">	 mProviderMap = <span class="keyword">new</span> ProviderMap(<span class="keyword">this</span>);</span><br><span class="line">	<span class="comment">//创建/data/system/</span></span><br><span class="line">	 File dataDir = Environment.getDataDirectory();</span><br><span class="line">	 File systemDir = <span class="keyword">new</span> File(dataDir, <span class="string">"system"</span>);</span><br><span class="line">	 systemDir.mkdirs();</span><br><span class="line">	 <span class="comment">// 电源服务一些信息/data/system/batterystats.bin</span></span><br><span class="line">	 mBatteryStatsService = <span class="keyword">new</span> BatteryStatsService(<span class="keyword">new</span> File(</span><br><span class="line">	         systemDir, <span class="string">"batterystats.bin"</span>).toString());</span><br><span class="line">	 mBatteryStatsService.getActiveStatistics().readLocked();</span><br><span class="line">	 mBatteryStatsService.getActiveStatistics().writeAsyncLocked();</span><br><span class="line">	 mOnBattery = DEBUG_POWER ? <span class="keyword">true</span></span><br><span class="line">	         : mBatteryStatsService.getActiveStatistics().getIsOnBattery();</span><br><span class="line">	 mBatteryStatsService.getActiveStatistics().setCallback(<span class="keyword">this</span>);</span><br><span class="line">	<span class="comment">//进程状态 /data/system/procstates</span></span><br><span class="line">	 mProcessStats = <span class="keyword">new</span> ProcessStatsService(<span class="keyword">this</span>, <span class="keyword">new</span> File(systemDir, <span class="string">"procstats"</span>));</span><br><span class="line">	 <span class="comment">//使用状态 /data/system/usagestats</span></span><br><span class="line">	mUsageStatsService = <span class="keyword">new</span> UsageStatsService(<span class="keyword">new</span> File(systemDir, <span class="string">"usagestats"</span>).toString());</span><br><span class="line">	<span class="comment">// Ops状态 /data/system/appops.xml</span></span><br><span class="line">	 mAppOpsService = <span class="keyword">new</span> AppOpsService(<span class="keyword">new</span> File(systemDir, <span class="string">"appops.xml"</span>));</span><br><span class="line">	<span class="comment">// Uri授权记录 /data/system/urigrants.xml</span></span><br><span class="line">	 mGrantFile = <span class="keyword">new</span> AtomicFile(<span class="keyword">new</span> File(systemDir, <span class="string">"urigrants.xml"</span>));</span><br><span class="line">	</span><br><span class="line">	 mHeadless = <span class="string">"1"</span>.equals(SystemProperties.get(<span class="string">"ro.config.headless"</span>, <span class="string">"0"</span>));</span><br><span class="line">	</span><br><span class="line">	 <span class="comment">// User 0 is the first and only user that runs at boot.</span></span><br><span class="line">	 mStartedUsers.put(<span class="number">0</span>, <span class="keyword">new</span> UserStartedState(<span class="keyword">new</span> UserHandle(<span class="number">0</span>), <span class="keyword">true</span>));</span><br><span class="line">	 mUserLru.add(Integer.valueOf(<span class="number">0</span>));</span><br><span class="line">	 updateStartedUserArrayLocked();</span><br><span class="line">	</span><br><span class="line">	 GL_ES_VERSION = SystemProperties.getInt(<span class="string">"ro.opengles.version"</span>,</span><br><span class="line">	     ConfigurationInfo.GL_ES_VERSION_UNDEFINED);</span><br><span class="line">	<span class="comment">//mConfiguration类型为Configuration，用于描述资源文件的配置属性，</span></span><br><span class="line">	<span class="comment">//例如字体、语言等。后文再讨论这方面的内容</span></span><br><span class="line">	 mConfiguration.setToDefaults();</span><br><span class="line">	 mConfiguration.setLocale(Locale.getDefault());</span><br><span class="line">	</span><br><span class="line">	 mConfigurationSeq = mConfiguration.seq = <span class="number">1</span>;</span><br><span class="line">	 mProcessCpuTracker.init();</span><br><span class="line">	</span><br><span class="line">	 mCompatModePackages = <span class="keyword">new</span> CompatModePackages(<span class="keyword">this</span>, systemDir);</span><br><span class="line">	</span><br><span class="line">	 <span class="comment">// Add ourself to the Watchdog monitors.</span></span><br><span class="line">	 Watchdog.getInstance().addMonitor(<span class="keyword">this</span>);</span><br><span class="line">	</span><br><span class="line">	 mProcessCpuThread = <span class="keyword">new</span> Thread(<span class="string">"CpuTracker"</span>)&#123;</span><br><span class="line">	     <span class="meta">@Override</span></span><br><span class="line">	     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	         <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">	             <span class="keyword">final</span> <span class="keyword">long</span> now = SystemClock.uptimeMillis();</span><br><span class="line">	             <span class="keyword">long</span> nextCpuDelay =(mLastCpuTime.get()+MONITOR_CPU_MAX_TIME)-now;</span><br><span class="line">	              <span class="keyword">long</span> nextWriteDelay = (mLastWriteTime+BATTERY_STATS_TIME)-now;</span><br><span class="line">	              <span class="comment">//Slog.i(TAG, "Cpu delay=" + nextCpuDelay</span></span><br><span class="line">	               <span class="comment">//        + ", write delay=" + nextWriteDelay);</span></span><br><span class="line">	              <span class="keyword">if</span> (nextWriteDelay &lt; nextCpuDelay) &#123;</span><br><span class="line">	                    nextCpuDelay = nextWriteDelay;</span><br><span class="line">	                &#125;</span><br><span class="line">	                         <span class="keyword">if</span> (nextCpuDelay &gt; <span class="number">0</span>) &#123;</span><br><span class="line">	                             mProcessCpuMutexFree.set(<span class="keyword">true</span>);</span><br><span class="line">	                             <span class="keyword">this</span>.wait(nextCpuDelay);</span><br><span class="line">	                         &#125;</span><br><span class="line">	                 updateCpuStatsNow();</span><br><span class="line">	         &#125;</span><br><span class="line">	        &#125;</span><br><span class="line">	 &#125;;</span><br><span class="line">	 mProcessCpuThread.start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>构造函数完成了：</p>
+<ul>
+<li>建立了<code>mFgBroadcastQueue</code>和<code>mBgBroadcastQueue</code>两个广播队列。</li>
+<li><code>ActiveServices</code>和<code>providermap</code></li>
+<li>建立<code>/data/system/</code>目录下一些信息，如：<code>/data/system/procstates</code>等一些配置信息初始化：字体，语言，等启动线程，cpu一些使用情况。</li>
+</ul>
+<h3 id="1-1-2-AT-systemMain"><a href="#1-1-2-AT-systemMain" class="headerlink" title="1.1.2 AT.systemMain"></a>1.1.2 AT.systemMain</h3><p><strong>注意</strong>:应用进程指那些运行APK的进程，它们由Zyote 派生（fork）而来，上面运行了dalvik虚拟机。与应用进程相对的就是系统进程（包括Zygote和SystemServer）。</p>
+<p><strong>应用进程和系统进程</strong>与<strong>应用APK和系统APK</strong>的概念区分开来。APK的判别依赖其文件所在位置（如果apk文件在<code>/data/app</code>目录下，则为应用APK）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ActivityThread <span class="title">systemMain</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   <span class="comment">//禁止硬件加速</span></span><br><span class="line">   HardwareRenderer.disable(<span class="keyword">true</span>);</span><br><span class="line">   ActivityThread thread = <span class="keyword">new</span> ActivityThread();</span><br><span class="line">   thread.attach(<span class="keyword">true</span>);</span><br><span class="line">   <span class="keyword">return</span> thread;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>前面所说的<code>ActivityThread</code>代表应用进程（其上运行了APK）的主线程，而SystemServer并非一个应用进程，那么为什么此处也需要ActivityThread呢？</p>
+<ul>
+<li>还记得在PackageManagerService分析中提到的<code>framework-res.apk</code>吗？这个APK除了包含资源文件外，还包含一些Activity（如<code>关机对话框</code>），这些<code>Activity</code>实际上运行在<code>SystemServer</code>进程中。从这个角度看，SystemServer是一个特殊的应用进程。</li>
+<li>另外，通过ActivityThread可以把Android系统提供的组件之间的交互机制和交互接口（如利用Context提供的API）也拓展到SystemServer中使用。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//system=true</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">attach</span><span class="params">(<span class="keyword">boolean</span> system)</span> </span>&#123;</span><br><span class="line">    sCurrentActivityThread = <span class="keyword">this</span>;</span><br><span class="line">    mSystemThread = system;</span><br><span class="line">    <span class="keyword">if</span> (!system) &#123;<span class="comment">//应用进程处理流程</span></span><br><span class="line">        ViewRootImpl.addFirstDrawHandler(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                ensureJitEnabled();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        android.ddm.DdmHandleAppName.setAppName(<span class="string">"&lt;pre-initialized&gt;"</span>,UserHandle.myUserId());</span><br><span class="line">        RuntimeInit.setApplicationObject(mAppThread.asBinder());</span><br><span class="line">        IActivityManager mgr = ActivityManagerNative.getDefault();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            mgr.attachApplication(mAppThread);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (RemoteException ex) &#123;</span><br><span class="line">            <span class="comment">// Ignore</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;<span class="comment">//系统处理流程，systemServer中对应这个.</span></span><br><span class="line">        <span class="comment">// Don't set application object here -- if the system crashes,</span></span><br><span class="line">        <span class="comment">// we can't display an alert, we just want to die die die.</span></span><br><span class="line">        <span class="comment">//设置DDMS看到systemserver进程名为system_process</span></span><br><span class="line">        android.ddm.DdmHandleAppName.setAppName(<span class="string">"system_process"</span>,</span><br><span class="line">                                                UserHandle.myUserId());</span><br><span class="line">        <span class="keyword">try</span> &#123;<span class="comment">//Activity几员大将出场</span></span><br><span class="line">            mInstrumentation = <span class="keyword">new</span> Instrumentation();</span><br><span class="line">            ContextImpl context = <span class="keyword">new</span> ContextImpl();</span><br><span class="line">            context.init(getSystemContext().mPackageInfo, <span class="keyword">null</span>, <span class="keyword">this</span>);</span><br><span class="line">            Application app = Instrumentation.newApplication(Application.class, context);</span><br><span class="line">            <span class="comment">//一个进程支持多个应用</span></span><br><span class="line">            mAllApplications.add(app);</span><br><span class="line">            mInitialApplication = app;</span><br><span class="line">            app.onCreate();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(</span><br><span class="line">                    <span class="string">"Unable to instantiate Application():"</span> + e.toString(), e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// add dropbox logging to libcore</span></span><br><span class="line">    DropBox.setReporter(<span class="keyword">new</span> DropBoxReporter());</span><br><span class="line">    <span class="comment">//监听配置改变，如语言切换时，需要调用。</span></span><br><span class="line">    ViewRootImpl.addConfigCallback(<span class="keyword">new</span> ComponentCallbacks2() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onConfigurationChanged</span><span class="params">(Configuration newConfig)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (mResourcesManager) &#123;</span><br><span class="line">                <span class="comment">// We need to apply this change to the resources</span></span><br><span class="line">                <span class="comment">// immediately, because upon returning the view</span></span><br><span class="line">                <span class="comment">// hierarchy will be informed about it.</span></span><br><span class="line">                <span class="keyword">if</span> (mResourcesManager.applyConfigurationToResourcesLocked(newConfig, <span class="keyword">null</span>)) &#123;</span><br><span class="line">                    <span class="comment">// This actually changed the resources!  Tell</span></span><br><span class="line">                    <span class="comment">// everyone about it.</span></span><br><span class="line">                    <span class="keyword">if</span> (mPendingConfiguration == <span class="keyword">null</span> ||</span><br><span class="line">                            mPendingConfiguration.isOtherSeqNewer(newConfig)) &#123;</span><br><span class="line">                        mPendingConfiguration = newConfig;</span><br><span class="line"></span><br><span class="line">                        sendMessage(H.CONFIGURATION_CHANGED, newConfig);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onLowMemory</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onTrimMemory</span><span class="params">(<span class="keyword">int</span> level)</span> </span>&#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Activity几员大将出场：</p>
+<ul>
+<li><code>Instrumentation</code>:一个工具类。当它被启用时，系统先创建它，再通过它来创建其他组件。系统和组件之间的交互也将通过<code>Instrumentation</code>来传递，这样，Instrumentation就能监测系统和这些组件的交互情况了。在实际使用中，我们可以创建Instrumentation的派生类来进行相应的处理。</li>
+<li><code>Application</code>:保存了一个全局的application状态。Application由AndroidManifest.xml中的<code>&lt;application&gt;</code>标签声明。在实际使用时需定义Application的派生类。Application是Android中的一个概念，可理解为一种容器，它内部包含四大组件。另外，一个进程可以运行多个Application。</li>
+<li><code>Context</code>是一个接口，通过它可以获取并操作Application对应的资源、类，甚至包含于Application中的四大组件。Context是一个抽象类，而由AMS创建的将是它的子类ContextImpl。</li>
+</ul>
+<h3 id="1-1-3-at-getSystemContext"><a href="#1-1-3-at-getSystemContext" class="headerlink" title="1.1.3 at.getSystemContext()"></a>1.1.3 at.getSystemContext()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ContextImpl <span class="title">getSystemContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mSystemContext == <span class="keyword">null</span>) &#123;</span><br><span class="line">            ContextImpl context =</span><br><span class="line">                ContextImpl.createSystemContext(<span class="keyword">this</span>);</span><br><span class="line">            <span class="comment">//LoadedApk代表一个加载到系统中的APK</span></span><br><span class="line">            LoadedApk info = <span class="keyword">new</span> LoadedApk(<span class="keyword">this</span>, <span class="string">"android"</span>, context, <span class="keyword">null</span>,</span><br><span class="line">                    CompatibilityInfo.DEFAULT_COMPATIBILITY_INFO);</span><br><span class="line">            context.init(info, <span class="keyword">null</span>, <span class="keyword">this</span>);</span><br><span class="line">             <span class="comment">//初始化资源信息</span></span><br><span class="line">            context.getResources().updateConfiguration</span><br><span class="line">            (mResourcesManager.getConfiguration(),</span><br><span class="line">            getDisplayMetricsLocked(Display.DEFAULT_DISPLAY));</span><br><span class="line">            mSystemContext = context;</span><br><span class="line">            <span class="comment">//Slog.i(TAG, "Created system resources " + context.getResources()</span></span><br><span class="line">            <span class="comment">//        + ": " + context.getResources().getConfiguration());</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mSystemContext;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为什么函数名是getSystemContext呢？</p>
+<ul>
+<li>初始化ContextImp时使用了一个<code>LoadedApk</code>对象,package名为<code>android</code>,其实就是framework-res.apk,为了加载该APK。 </li>
+</ul>
+<p><img src="/2017/08/01/ActivityManagerService/2018031809480920.png" alt="Context家族图"></p>
+<p>上述类中关系图：</p>
+<ul>
+<li>先来看派生关系,<code>ApplicationContentResolver</code>从<code>ConentResolver</code>派生，它主要用于和ContentProvider打交道。ContextImpl和ContextWrapper均从Context继承，而<code>Application</code>则从<code>ContextWrapper</code>派生。</li>
+<li>从社会关系角度看，ContextImpl交际面最广。它通过mResources指向Resources，mPackageInfo指向LoadedApk，mMainThread指向ActivityThread，mContentResolver指向ApplicationContentResolver。</li>
+</ul>
+<p>对Context进行再议：</p>
+<p><img src="/2017/08/01/ActivityManagerService/20180318095541276.png" alt="Context家族图"></p>
+<p>由图可知:</p>
+<ul>
+<li><code>ContextWrapper</code>是一个代理类，被代理的对象是另外一个Context。被代理的类其实是ContextImpl，由ContextWrapper通过mBase成员变量指定。其内部函数功能的实现最终都由mBase完成。这样设计的目的是想把ContextImpl隐藏起来。</li>
+<li>Application从ContextWrapper派生，并实现了ComponentCallbacks2接口。Application中有一个LoadedApk类型的成员变量mLoadedApk。<strong>LoadedApk代表一个APK文件</strong>。由于一个AndroidManifest.xml文件只能声明一个Application标签，所以一个Application必然会和一个LoadedApk绑定。</li>
+<li>Service从ContextWrapper派生，其中Service内部成员变量mApplication指向Application（在AndroidManifest.xml中，Service只能作为Application的子标签，所以在代码中Service必然会和一个Application绑定）。</li>
+<li>ContextThemeWrapper重载了和Theme（主题）相关的两个函数。这些和界面有关，所以Activity作为Android系统中的UI容器，必然也会从ContextThemeWrapper派生。与Service一样，Activity内部也通过mApplication成员变量指向Application。</li>
+</ul>
+<p><strong>systemMain函数总结</strong></p>
+<ul>
+<li>得到一个ActivityThread对象，它代表应用进程的主线程。</li>
+<li>得到一个Context对象，它背后所指向的Application环境与framework-res.apk有关。</li>
+</ul>
+<p><strong>systemMain函数将为SystemServer进程搭建一个和应用进程一样的Android运行环境</strong>。这句话涉及两个概念。  </p>
+<ul>
+<li><code>进程</code>：来源于操作系统，是在OS中看到的运行体。我们编写的代码一定要运行在一个进程中。</li>
+<li><code>Android运行环境</code>：Android努力构筑了一个自己的运行环境。在这个环境中，进程的概念被模糊化了。组件的运行及它们之间的交互均在该环境中实现。</li>
+</ul>
+<p>Android运行环境是构建在进程之上的。在应用程序中，一般只和Android运行环境交互。基于同样的道理，SystemServer希望它内部的那些Service也通过Android运行环境交互，因此也需为它创建一个运行环境。由于SystemServer的特殊性，此处调用了systemMain函数，而普通的应用进程将在主线程中调用ActivityThread的main函数来创建Android运行环境。</p>
+<p>另外，ActivityThread虽然本意是代表进程的主线程，但是作为一个Java类，它的实例到底由什么线程创建，恐怕不是ActivityThread自己能做主的，所以在SystemServer中可以发现，ActivityThread对象由其他线程创建，而在应用进程中，ActivityThread将由主线程来创建。</p>
+<h3 id="1-1-4-m-startRunning"><a href="#1-1-4-m-startRunning" class="headerlink" title="1.1.4 m.startRunning"></a>1.1.4 m.startRunning</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">startRunning</span><span class="params">(String pkg, String cls, String action, String data)</span> </span>&#123;</span><br><span class="line"><span class="keyword">synchronized</span>(<span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mStartRunning) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        mStartRunning = <span class="keyword">true</span>;</span><br><span class="line">        <span class="comment">//mTopComponent最终赋值为null</span></span><br><span class="line">        mTopComponent = pkg != <span class="keyword">null</span> &amp;&amp; cls != <span class="keyword">null</span></span><br><span class="line">                ? <span class="keyword">new</span> ComponentName(pkg, cls) : <span class="keyword">null</span>;</span><br><span class="line">        <span class="comment">//mTopAction= Intent.ACTION_MAIN</span></span><br><span class="line">        mTopAction = action != <span class="keyword">null</span> ? action : Intent.ACTION_MAIN;</span><br><span class="line">        mTopData = data;<span class="comment">//mTopData最终为null</span></span><br><span class="line">        <span class="keyword">if</span> (!mSystemReady) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//这个函数很重要，可惜不在本次startRunning中调用</span></span><br><span class="line">    systemReady(<span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="1-2-AMS-setSystemProcess"><a href="#1-2-AMS-setSystemProcess" class="headerlink" title="1.2 AMS.setSystemProcess"></a>1.2 AMS.setSystemProcess</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setSystemProcess</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ActivityManagerService m = mSelf;</span><br><span class="line">        <span class="comment">//向ServiceManager注册几个服务</span></span><br><span class="line">        ServiceManager.addService(Context.ACTIVITY_SERVICE, m, <span class="keyword">true</span>);</span><br><span class="line">        ServiceManager.addService(ProcessStats.SERVICE_NAME, m.mProcessStats);</span><br><span class="line">        ServiceManager.addService(<span class="string">"meminfo"</span>, <span class="keyword">new</span> MemBinder(m));</span><br><span class="line">        ServiceManager.addService(<span class="string">"gfxinfo"</span>, <span class="keyword">new</span> GraphicsBinder(m));<span class="comment">//显示加速方面的信息（Applications</span></span><br><span class="line">         Graphics Acceleration Info）， dumpsys gfxinfo</span><br><span class="line">        ServiceManager.addService(<span class="string">"dbinfo"</span>, <span class="keyword">new</span> DbBinder(m));</span><br><span class="line">        <span class="keyword">if</span> (MONITOR_CPU_USAGE) &#123;</span><br><span class="line">            ServiceManager.addService(<span class="string">"cpuinfo"</span>, <span class="keyword">new</span> CpuBinder(m));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//向SM注册权限管理服务PermissionController</span></span><br><span class="line">        ServiceManager.addService(<span class="string">"permission"</span>, <span class="keyword">new</span> PermissionController(m));</span><br><span class="line">        <span class="comment">//虽然PKMS和AMS同属一个进程，但是二者交互仍然借助Context 其实，此处完全可以直接调用PKMS的函数。为什么要费如此周折呢   </span></span><br><span class="line">        ApplicationInfo info =</span><br><span class="line">            mSelf.mContext.getPackageManager().getApplicationInfo(</span><br><span class="line">                        <span class="string">"android"</span>, STOCK_PM_FLAGS);</span><br><span class="line">        <span class="comment">//1.installSystemApplicationInfo</span></span><br><span class="line">        mSystemThread.installSystemApplicationInfo(info);</span><br><span class="line">        <span class="keyword">synchronized</span> (mSelf) &#123;<span class="comment">//2.此处涉及AMS对进程的管理,processName=system</span></span><br><span class="line">            ProcessRecord app = mSelf.newProcessRecordLocked(info,</span><br><span class="line">                    info.processName, <span class="keyword">false</span>);</span><br><span class="line">            <span class="comment">//这里标识出systemProcess</span></span><br><span class="line">            app.persistent = <span class="keyword">true</span>;<span class="comment">//设置该值为true</span></span><br><span class="line">            app.pid = MY_PID;<span class="comment">//设置pid为SystemServer的进程号</span></span><br><span class="line">            app.maxAdj = ProcessList.SYSTEM_ADJ;<span class="comment">//设置最大OOM_Adj，系统进程默认值为-16</span></span><br><span class="line">            app.makeActive(mSystemThread.getApplicationThread(), mSelf.mProcessStats);</span><br><span class="line">            <span class="comment">//3.保存该ProcessRecord对象</span></span><br><span class="line">            mSelf.mProcessNames.put(app.processName, app.uid, app);</span><br><span class="line">            <span class="keyword">synchronized</span> (mSelf.mPidsSelfLocked) &#123;</span><br><span class="line">                mSelf.mPidsSelfLocked.put(app.pid, app);</span><br><span class="line">            &#125;</span><br><span class="line">             <span class="comment">//根据系统当前状态，调整进程的调度优先级和OOM_Adj，后续将详细分析该函数</span></span><br><span class="line">            mSelf.updateLruProcessLocked(app, <span class="keyword">false</span>, <span class="keyword">null</span>);</span><br><span class="line">            mSelf.updateOomAdjLocked();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (PackageManager.NameNotFoundException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(</span><br><span class="line">                <span class="string">"Unable to find android system package"</span>, e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在以上代码中列出了一个重要说明和两个关键点。</p>
+<ul>
+<li>AMS向PKMS查询名为“android”的ApplicationInfo。此处AMS和PKMS的交互是通过Context来完成的，查看这一系列函数调用的代码，最终发现AMS将通过Binder发送请求给PKMS来完成查询功能。</li>
+<li>AMS和PKMS同属一个进程，它们完全可以不通过Context来交互。此处为何要如此大费周章呢？原因很简单，Android希望SystemServer中的服务也通过Android运行环境来交互。这更多是从设计上来考虑的，比如组件之间交互接口的统一及未来系统的可扩展性。</li>
+</ul>
+<h3 id="1-2-1-mSystemThread-installSystemApplicationInfo"><a href="#1-2-1-mSystemThread-installSystemApplicationInfo" class="headerlink" title="1.2.1 mSystemThread.installSystemApplicationInfo"></a>1.2.1 mSystemThread.installSystemApplicationInfo</h3><p>AMS通过Context查询PKMS中一个名为“android”的package得来，只有framework-res.apk声明其package名为“android”。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">installSystemApplicationInfo</span><span class="params">(ApplicationInfo info)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">     <span class="comment">//返回的ContextImpl对象即之前在AMS的main函数一节中创建的那个对象</span></span><br><span class="line">        ContextImpl context = getSystemContext();</span><br><span class="line">         <span class="comment">//又调用init初始化该Context，是不是重复调用init了？</span></span><br><span class="line">        context.init(<span class="keyword">new</span> LoadedApk(<span class="keyword">this</span>, <span class="string">"android"</span>, context, info,</span><br><span class="line">                CompatibilityInfo.DEFAULT_COMPATIBILITY_INFO), <span class="keyword">null</span>, <span class="keyword">this</span>);</span><br><span class="line">        <span class="comment">// give ourselves a default profiler</span></span><br><span class="line">        <span class="comment">//创建一个Profiler对象，用于性能统计</span></span><br><span class="line">        mProfiler = <span class="keyword">new</span> Profiler();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>又调用init初始化该Context，是不是重复调用init了？</p>
+<ul>
+<li>第一次执行init时，在LoadedApk构造函数中第四个表示ApplicationInfo的参数为null。第二次执行init时，LoadedApk构造函数的第四个参数不为空，即该参数将真正指向一个实际的ApplicationInfo，该ApplicationInfo来源于framework-res.apk。</li>
+<li>Context第一次执行init的目的仅仅是为了创建一个Android运行环境，而该Context并没有和实际的ApplicationInfo绑定。而第二次执行init前，先利用Context和PKMS交互得到一个实际的ApplicationInfo，然后再通过init将此Context和ApplicationInfo绑定。</li>
+<li>framework-res.apk（包括后面将介绍的SettingsProvider.apk）运行在SystemServer中。和其他所有apk一样，它的运行需要一个正确初始化的Android运行环境。需要绑定ApplicationInfo。</li>
+</ul>
+<h3 id="1-2-2-mSelf-newProcessRecordLocked"><a href="#1-2-2-mSelf-newProcessRecordLocked" class="headerlink" title="1.2.2  mSelf.newProcessRecordLocked"></a>1.2.2  mSelf.newProcessRecordLocked</h3><p>AMS和应用进程交互，如启动其他进程的Activity，由于该Activity在另一个进程中，需要跨进程通信，通过Binder完成。Android提供了IApplicationThread接口，该接口定义了AMS和应用进程之间交互函数。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IApplicationThread</span> <span class="keyword">extends</span> <span class="title">IInterface</span> </span>&#123;</span><br><span class="line">    <span class="keyword">void</span> schedulePauseActivity;</span><br><span class="line">    <span class="keyword">void</span> scheduleStopActivity;</span><br><span class="line">    <span class="keyword">void</span> scheduleWindowVisibility;</span><br><span class="line">    <span class="keyword">void</span> scheduleSleeping;</span><br><span class="line">    <span class="keyword">void</span> scheduleResumeActivity</span><br><span class="line">    <span class="keyword">void</span> scheduleLaunchActivity</span><br><span class="line">    <span class="keyword">void</span> scheduleReceiver</span><br><span class="line">    <span class="keyword">void</span> scheduleCreateService</span><br><span class="line">    <span class="keyword">void</span> scheduleRegisteredReceiver</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">scheduleLowMemory</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    <span class="keyword">void</span> setProcessState</span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>newProcessRecordLocked函数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> ProcessRecord <span class="title">newProcessRecordLocked</span><span class="params">(ApplicationInfo info, String customProcess,</span></span></span><br><span class="line"><span class="function"><span class="params">            <span class="keyword">boolean</span> isolated)</span> </span>&#123;</span><br><span class="line">   String proc = customProcess != <span class="keyword">null</span> ? customProcess : info.processName;</span><br><span class="line">    BatteryStatsImpl.Uid.Proc ps = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">//BSImpl将为该进程创建一个耗电量统计项</span></span><br><span class="line">    BatteryStatsImpl stats = mBatteryStatsService.getActiveStatistics();</span><br><span class="line">    <span class="keyword">int</span> uid = info.uid;</span><br><span class="line">    <span class="keyword">if</span> (isolated) &#123;</span><br><span class="line">        <span class="keyword">int</span> userId = UserHandle.getUserId(uid);</span><br><span class="line">        <span class="keyword">int</span> stepsLeft = Process.LAST_ISOLATED_UID - Process.FIRST_ISOLATED_UID + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (mNextIsolatedProcessUid &lt; Process.FIRST_ISOLATED_UID</span><br><span class="line">                    || mNextIsolatedProcessUid &gt; Process.LAST_ISOLATED_UID) &#123;</span><br><span class="line">                mNextIsolatedProcessUid = Process.FIRST_ISOLATED_UID;</span><br><span class="line">            &#125;</span><br><span class="line">            uid = UserHandle.getUid(userId, mNextIsolatedProcessUid);</span><br><span class="line">            mNextIsolatedProcessUid++;</span><br><span class="line">            <span class="keyword">if</span> (mIsolatedProcesses.indexOfKey(uid) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">// No process for this uid, use it.</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            stepsLeft--;</span><br><span class="line">            <span class="keyword">if</span> (stepsLeft &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//创建一个ProcessRecord对象，用于和其他进程通信的thread作为第一个参数</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ProcessRecord(stats, info, proc, uid);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ProcessRecord构造函数初始化一些成员变量：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">ProcessRecord(BatteryStatsImpl _batteryStats, ApplicationInfo _info,</span><br><span class="line">            String _processName, <span class="keyword">int</span> _uid) &#123;</span><br><span class="line">    mBatteryStats = _batteryStats; <span class="comment">//用于电量统计</span></span><br><span class="line">    info = _info;<span class="comment">//保存ApplicationInfo</span></span><br><span class="line">    isolated = _info.uid != _uid;</span><br><span class="line">    uid = _uid;</span><br><span class="line">    userId = UserHandle.getUserId(_uid);</span><br><span class="line">    processName = _processName; <span class="comment">//保存进程名</span></span><br><span class="line">    pkgList.put(_info.packageName, <span class="keyword">null</span>);<span class="comment">//一个进程能运行多个Package，pkgList用于保存package名</span></span><br><span class="line">     <span class="comment">//下面这些xxxAdj成员变量和进程调度优先级及OOM_adj有关。</span></span><br><span class="line">    maxAdj = ProcessList.UNKNOWN_ADJ;</span><br><span class="line">    curRawAdj = setRawAdj = -<span class="number">100</span>;</span><br><span class="line">    curAdj = setAdj = -<span class="number">100</span>;</span><br><span class="line">     <span class="comment">//用于控制该进程是否常驻内存（即使被杀掉，系统也会重启它），只有重要的进程才会有此待遇</span></span><br><span class="line">    persistent = <span class="keyword">false</span>;</span><br><span class="line">    removed = <span class="keyword">false</span>;</span><br><span class="line">    lastStateTime = lastPssTime = nextPssTime = SystemClock.uptimeMillis();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>AMS的setSystemProcess总结</strong></p>
+<ul>
+<li>注册AMS、meminfo、gfxinfo等服务到ServiceManager中。</li>
+<li>根据PKMS返回的ApplicationInfo初始化Android运行环境，并创建一个代表SystemServer进程的ProcessRecord，从此，SystemServer进程也并入AMS的管理范围内。</li>
+</ul>
+<h2 id="1-3-AMS-installSystemProviders"><a href="#1-3-AMS-installSystemProviders" class="headerlink" title="1.3 AMS.installSystemProviders"></a>1.3 AMS.installSystemProviders</h2><p>该Provider在SettingsProvider.apk中，installSystemProviders就会加载该APK并把SettingsProvider放到SystemServer进程中来运行。此时的SystemServer已经加载了framework-res.apk，现在又要加载另外一个APK文件，这就是多个APK运行在同一进程的典型案例。另外，通过installSystemProviders函数还能见识ContentProvider的安装过程，下面就来分析它。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">installSystemProviders</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   List&lt;ProviderInfo&gt; providers;</span><br><span class="line">    <span class="keyword">synchronized</span> (mSelf) &#123;</span><br><span class="line">    <span class="comment">/*从mProcessNames找到进程名为“system”且uid为SYSTEM_UID的ProcessRecord,返回值就是前面在installSystemApplication中创建的那个ProcessRecord，它代表SystemServer进程 */</span></span><br><span class="line">    ProcessRecord app = mSelf.mProcessNames.get(<span class="string">"system"</span>, Process.SYSTEM_UID);</span><br><span class="line">    <span class="comment">//1.关键调用，见下文分析</span></span><br><span class="line">     providers = mSelf.generateApplicationProvidersLocked(app);</span><br><span class="line">     <span class="keyword">if</span> (providers != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i=providers.size()-<span class="number">1</span>; i&gt;=<span class="number">0</span>; i--) &#123;</span><br><span class="line">                ProviderInfo pi = (ProviderInfo)providers.get(i);</span><br><span class="line">                <span class="keyword">if</span> ((pi.applicationInfo.flags&amp;ApplicationInfo.FLAG_SYSTEM) == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">//将非系统APK（即未设ApplicationInfo.FLAG_SYSTEM标志）提供的Provider从providers列表中去掉</span></span><br><span class="line">                    Slog.w(TAG, <span class="string">"Not installing system proc provider "</span> + pi.name</span><br><span class="line">                            + <span class="string">": not system .apk"</span>);</span><br><span class="line">                    providers.remove(i);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (providers != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">//2.为SystemServer进程安装Provider</span></span><br><span class="line">        mSystemThread.installSystemProviders(providers);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//监视Settings数据库中Secure表的变化，目前只关注long_press_timeout配置的变化</span></span><br><span class="line">    mSelf.mCoreSettingsObserver = <span class="keyword">new</span> CoreSettingsObserver(mSelf);</span><br><span class="line">    mSelf.mUsageStatsService.monitorPackages();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在代码中列出了两个关键调用，分别是：</p>
+<ul>
+<li>调用generateApplicationProvidersLocked函数，该函数返回一个ProviderInfo List。</li>
+<li>调用ActivityThread的installSystemProviders函数。ActivityThread可以看做是进程的Android运行环境，那么installSystemProviders表示为该进程安装ContentProvider。 </li>
+</ul>
+<p><strong>注意</strong>：此处不再区分系统进程还是应用进程。由于只和ActivityThread交互，因此它运行在什么进程无关紧要。</p>
+<p>AMS的 generateApplicationProvidersLocked函数分析</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">final</span> List&lt;ProviderInfo&gt; <span class="title">generateApplicationProvidersLocked</span><span class="params">(ProcessRecord app)</span> </span>&#123;</span><br><span class="line">  List&lt;ProviderInfo&gt; providers = <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">   <span class="comment">//1.向PKMS查询满足要求的ProviderInfo，最重要的查询条件包括：进程名和进程uid</span></span><br><span class="line">     providers = AppGlobals.getPackageManager().</span><br><span class="line">          queryContentProviders(app.processName, app.uid,</span><br><span class="line">                  STOCK_PM_FLAGS | PackageManager.GET_URI_PERMISSION_PATTERNS);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (RemoteException ex) &#123;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (DEBUG_MU)</span><br><span class="line">      Slog.v(TAG_MU, <span class="string">"generateApplicationProvidersLocked, app.info.uid = "</span> + app.uid);</span><br><span class="line">  <span class="keyword">int</span> userId = app.userId;</span><br><span class="line">  <span class="keyword">if</span> (providers != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">int</span> N = providers.size();</span><br><span class="line">      app.pubProviders.ensureCapacity(N + app.pubProviders.size());</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;N; i++) &#123;</span><br><span class="line">      <span class="comment">//2.AMS对ContentProvider的管理，见下文解释</span></span><br><span class="line">          ProviderInfo cpi =</span><br><span class="line">              (ProviderInfo)providers.get(i);</span><br><span class="line">          <span class="keyword">boolean</span> singleton = isSingleton(cpi.processName, cpi.applicationInfo,</span><br><span class="line">                  cpi.name, cpi.flags);</span><br><span class="line">          <span class="keyword">if</span> (singleton &amp;&amp; UserHandle.getUserId(app.uid) != <span class="number">0</span>) &#123;</span><br><span class="line">              <span class="comment">// This is a singleton provider, but a user besides the</span></span><br><span class="line">              <span class="comment">// default user is asking to initialize a process it runs</span></span><br><span class="line">              <span class="comment">// in...  well, no, it doesn't actually run in this process,</span></span><br><span class="line">              <span class="comment">// it runs in the process of the default user.  Get rid of it.</span></span><br><span class="line">              providers.remove(i);</span><br><span class="line">              N--;</span><br><span class="line">              i--;</span><br><span class="line">              <span class="keyword">continue</span>;</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          ComponentName comp = <span class="keyword">new</span> ComponentName(cpi.packageName, cpi.name);</span><br><span class="line">          <span class="comment">//ContentProvider在AMS中用ContentProviderRecord来表示</span></span><br><span class="line">          ContentProviderRecord cpr = mProviderMap.getProviderByClass(comp, userId);</span><br><span class="line">          <span class="keyword">if</span> (cpr == <span class="keyword">null</span>) &#123;</span><br><span class="line">              cpr = <span class="keyword">new</span> ContentProviderRecord(<span class="keyword">this</span>, cpi, app.info, comp, singleton);</span><br><span class="line">              mProviderMap.putProviderByClass(comp, cpr);</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">if</span> (DEBUG_MU)</span><br><span class="line">              Slog.v(TAG_MU, <span class="string">"generateApplicationProvidersLocked, cpi.uid = "</span> + cpr.uid);</span><br><span class="line">          app.pubProviders.put(cpi.name, cpr);</span><br><span class="line">          <span class="keyword">if</span> (!cpi.multiprocess || !<span class="string">"android"</span>.equals(cpi.packageName)) &#123;</span><br><span class="line">              <span class="comment">// Don't add this if it is a platform component that is marked</span></span><br><span class="line">              <span class="comment">// to run in multiple processes, because this is actually</span></span><br><span class="line">              <span class="comment">// part of the framework so doesn't make sense to track as a</span></span><br><span class="line">              <span class="comment">// separate apk in the process.</span></span><br><span class="line">              app.addPackage(cpi.applicationInfo.packageName, mProcessStats);</span><br><span class="line">          &#125;</span><br><span class="line">          ensurePackageDexOpt(cpi.applicationInfo.packageName);</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> providers;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由以上代码可知：generateApplicationProvidersLocked先从PKMS那里查询满足条件的ProviderInfo信息，而后将它们分别保存到AMS和ProcessRecord中对应的数据结构中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> List&lt;ProviderInfo&gt; <span class="title">queryContentProviders</span><span class="params">(String processName,</span></span></span><br><span class="line"><span class="function"><span class="params">            <span class="keyword">int</span> uid, <span class="keyword">int</span> flags)</span> </span>&#123;</span><br><span class="line">    ArrayList&lt;ProviderInfo&gt; finalList = <span class="keyword">null</span>;</span><br><span class="line">    <span class="comment">// reader</span></span><br><span class="line">    <span class="keyword">synchronized</span> (mPackages) &#123;</span><br><span class="line">        <span class="keyword">final</span> Iterator&lt;PackageParser.Provider&gt; i = mProviders.mProviders.values().iterator();</span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> userId = processName != <span class="keyword">null</span> ?</span><br><span class="line">                UserHandle.getUserId(uid) : UserHandle.getCallingUserId();</span><br><span class="line">        <span class="keyword">while</span> (i.hasNext()) &#123;</span><br><span class="line">            <span class="keyword">final</span> PackageParser.Provider p = i.next();</span><br><span class="line">            PackageSetting ps = mSettings.mPackages.get(p.owner.packageName);</span><br><span class="line">           <span class="comment">// 下面的if语句将从这些Provider中搜索本例设置的processName为“system”，uid为SYSTEM_UID，flags为FLAG_SYSTEM的Provider</span></span><br><span class="line">            <span class="keyword">if</span> (ps != <span class="keyword">null</span> &amp;&amp; p.info.authority != <span class="keyword">null</span></span><br><span class="line">                    &amp;&amp; (processName == <span class="keyword">null</span></span><br><span class="line">                            || (p.info.processName.equals(processName)</span><br><span class="line">                                    &amp;&amp; UserHandle.isSameApp(p.info.applicationInfo.uid, uid)))</span><br><span class="line">                    &amp;&amp; mSettings.isEnabledLPr(p.info, flags, userId)</span><br><span class="line">                    &amp;&amp; (!mSafeMode</span><br><span class="line">                            || (p.info.applicationInfo.flags &amp; ApplicationInfo.FLAG_SYSTEM) != <span class="number">0</span>)) &#123;</span><br><span class="line">                <span class="keyword">if</span> (finalList == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    finalList = <span class="keyword">new</span> ArrayList&lt;ProviderInfo&gt;(<span class="number">3</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                ProviderInfo info = PackageParser.generateProviderInfo(p, flags,</span><br><span class="line">                        ps.readUserState(userId), userId);</span><br><span class="line">                <span class="keyword">if</span> (info != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    finalList.add(info);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//由PackageParser.Provider得到ProviderInfo，并添加到finalList中</span></span><br><span class="line">    <span class="keyword">if</span> (finalList != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">//最终结果按provider的initOrder排序，该值用于表示初始化ContentProvider的顺序</span></span><br><span class="line">        Collections.sort(finalList, mProviderInitOrderSorter);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> finalList;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>queryContentProviders函数很简单，就是从PKMS那里查找满足条件的Provider，然后生成AMS使用的ProviderInfo信息。为何偏偏能找到SettingsProvider呢？来看它的AndroidManifest.xml文件</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">manifest</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">package</span>=<span class="string">"com.android.providers.settings"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">coreApp</span>=<span class="string">"true"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:sharedUserId</span>=<span class="string">"android.uid.system"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">application</span> <span class="attr">android:allowClearUserData</span>=<span class="string">"false"</span></span></span><br><span class="line"><span class="tag">                 <span class="attr">android:label</span>=<span class="string">"@string/app_label"</span></span></span><br><span class="line"><span class="tag">                 <span class="attr">android:process</span>=<span class="string">"system"</span></span></span><br><span class="line"><span class="tag">                 <span class="attr">android:backupAgent</span>=<span class="string">"SettingsBackupAgent"</span></span></span><br><span class="line"><span class="tag">                 <span class="attr">android:killAfterRestore</span>=<span class="string">"false"</span></span></span><br><span class="line"><span class="tag">                 <span class="attr">android:icon</span>=<span class="string">"@mipmap/ic_launcher_settings"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- todo add: android:neverEncrypt="true" --&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">provider</span> <span class="attr">android:name</span>=<span class="string">"SettingsProvider"</span> <span class="attr">android:authorities</span>=<span class="string">"settings"</span></span></span><br><span class="line"><span class="tag">                  <span class="attr">android:multiprocess</span>=<span class="string">"false"</span></span></span><br><span class="line"><span class="tag">                  <span class="attr">android:exported</span>=<span class="string">"true"</span></span></span><br><span class="line"><span class="tag">                  <span class="attr">android:writePermission</span>=<span class="string">"android.permission.WRITE_SETTINGS"</span></span></span><br><span class="line"><span class="tag">                  <span class="attr">android:initOrder</span>=<span class="string">"100"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">application</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">manifest</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>SettingsProvider设置了其uid为“android.uid.system”，同时在application中设置了process名为“system”。而在framework-res.apk中也做了相同的设置。所以，现在可以确认SettingsProvider将和framework-res.apk运行在同一个进程，即SystemServer中。</p>
+<p>提示从运行效率角度来说，这样做也是合情合理的。因为SystemServer的很多Service都依赖Settings数据库，把它们放在同一个进程中，可以降低由于进程间通信带来的效率损失。</p>
+<h2 id="1-4-ASM的systemReady分析"><a href="#1-4-ASM的systemReady分析" class="headerlink" title="1.4 ASM的systemReady分析"></a>1.4 ASM的systemReady分析</h2><p>AMS的systemReady代码较多，会做什么,将会分为三个阶段。</p>
+<p><strong>第一阶段</strong><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">systemReady</span><span class="params">(<span class="keyword">final</span> Runnable goingCallback)</span> </span>&#123;</span><br><span class="line"><span class="keyword">synchronized</span>(<span class="keyword">this</span>) &#123;</span><br><span class="line"><span class="keyword">if</span> (mSystemReady) &#123;<span class="comment">//SystemReady，则直接执行线程</span></span><br><span class="line">    <span class="keyword">if</span> (goingCallback != <span class="keyword">null</span>) goingCallback.run();</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span>(SystemProperties.get(<span class="string">"persist.sys.qb.enable"</span>,<span class="string">"false"</span>).equals(<span class="string">"true"</span>))&#123;</span><br><span class="line">    reloadConfiguration();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Check to see if there are any update receivers to run.是否有升级动作</span></span><br><span class="line"><span class="keyword">if</span> (!mDidUpdate) &#123;</span><br><span class="line">    <span class="keyword">if</span> (mWaitingUpdate) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//准备PRE_BOOT_COMPLETED广播</span></span><br><span class="line">    Intent intent = <span class="keyword">new</span> Intent(Intent.ACTION_PRE_BOOT_COMPLETED);</span><br><span class="line">    List&lt;ResolveInfo&gt; ris = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// //向PKMS查询该广播的接收者</span></span><br><span class="line">        ris = AppGlobals.getPackageManager().queryIntentReceivers(</span><br><span class="line">                intent, <span class="keyword">null</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (ris != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i=ris.size()-<span class="number">1</span>; i&gt;=<span class="number">0</span>; i--) &#123;</span><br><span class="line">            <span class="keyword">if</span> ((ris.get(i).activityInfo.applicationInfo.flags</span><br><span class="line">                    &amp;ApplicationInfo.FLAG_SYSTEM) == <span class="number">0</span>) &#123;</span><br><span class="line">                ris.remove(i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="comment">//从返回的结果中删除那些非系统APK的广播接收者</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//读取/data/system/called_pre_boots.dat文件，这里存储了上次启动时候已经</span></span><br><span class="line">     <span class="comment">//接收并处理PRE_BOOT_COMPLETED广播的组件。鉴于该广播的特殊性，系统希望</span></span><br><span class="line">     <span class="comment">//该广播仅被这些接收者处理一次</span></span><br><span class="line">        intent.addFlags(Intent.FLAG_RECEIVER_BOOT_UPGRADE);</span><br><span class="line">        ArrayList&lt;ComponentName&gt; lastDoneReceivers = readLastDonePreBootReceivers();</span><br><span class="line">        <span class="keyword">final</span> ArrayList&lt;ComponentName&gt; doneReceivers = <span class="keyword">new</span> ArrayList&lt;ComponentName&gt;();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;ris.size(); i++) &#123;</span><br><span class="line">            ActivityInfo ai = ris.get(i).activityInfo;</span><br><span class="line">            ComponentName comp = <span class="keyword">new</span> ComponentName(ai.packageName, ai.name);</span><br><span class="line">            <span class="keyword">if</span> (lastDoneReceivers.contains(comp)) &#123;</span><br><span class="line">                ris.remove(i);</span><br><span class="line">                i--;</span><br><span class="line">            &#125;<span class="comment">//从PKMS返回的接收者中删除那些已经处理过该广播的对象</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span>[] users = getUsersLocked();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;ris.size(); i++) &#123;</span><br><span class="line">            ActivityInfo ai = ris.get(i).activityInfo;</span><br><span class="line">            ComponentName comp = <span class="keyword">new</span> ComponentName(ai.packageName, ai.name);</span><br><span class="line">            doneReceivers.add(comp);</span><br><span class="line">            intent.setComponent(comp);</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> j=<span class="number">0</span>; j&lt;users.length; j++) &#123;</span><br><span class="line">                IIntentReceiver finisher = <span class="keyword">null</span>;</span><br><span class="line">        <span class="comment">//为最后一个广播接收者注册一个回调通知，当该接收者处理完广播后，将调用该回调</span></span><br><span class="line">                <span class="keyword">if</span> (i == ris.size()-<span class="number">1</span> &amp;&amp; j == users.length-<span class="number">1</span>) &#123;</span><br><span class="line">                    finisher = <span class="keyword">new</span> IIntentReceiver.Stub() &#123;</span><br><span class="line">                        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">performReceive</span><span class="params">(Intent intent, <span class="keyword">int</span> resultCode,</span></span></span><br><span class="line"><span class="function"><span class="params">                                String data, Bundle extras, <span class="keyword">boolean</span> ordered,</span></span></span><br><span class="line"><span class="function"><span class="params">                                <span class="keyword">boolean</span> sticky, <span class="keyword">int</span> sendingUser)</span> </span>&#123;</span><br><span class="line">                            <span class="comment">// The raw IIntentReceiver interface is called</span></span><br><span class="line">                            <span class="comment">// with the AM lock held, so redispatch to</span></span><br><span class="line">                                                                    <span class="comment">// execute our code without the lock.</span></span><br><span class="line">                            mHandler.post(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">                                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                                    <span class="keyword">synchronized</span> (ActivityManagerService.<span class="keyword">this</span>) &#123;</span><br><span class="line">                                        mDidUpdate = <span class="keyword">true</span>;</span><br><span class="line">                                    &#125;</span><br><span class="line"><span class="comment">//保存那些处理过该广播的接收者信息                                    writeLastDonePreBootReceivers(doneReceivers);</span></span><br><span class="line">                                    showBootMessage(mContext.getText(</span><br><span class="line">                                            R.string.android_upgrading_complete),</span><br><span class="line">                                            <span class="keyword">false</span>);</span><br><span class="line">                                    systemReady(goingCallback);</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;;</span><br><span class="line">                &#125;</span><br><span class="line">                Slog.i(TAG, <span class="string">"Sending system update to "</span> + intent.getComponent()</span><br><span class="line">                        + <span class="string">" for user "</span> + users[j]);</span><br><span class="line">                        + </span><br><span class="line">                broadcastIntentLocked(<span class="keyword">null</span>, <span class="keyword">null</span>, intent, <span class="keyword">null</span>, finisher,</span><br><span class="line">                        <span class="number">0</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, AppOpsManager.OP_NONE,</span><br><span class="line">                        <span class="keyword">true</span>, <span class="keyword">false</span>, MY_PID, Process.SYSTEM_UID,</span><br><span class="line">                        users[j]);</span><br><span class="line">                <span class="keyword">if</span> (finisher != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    mWaitingUpdate = <span class="keyword">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mWaitingUpdate) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    mDidUpdate = <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//调用AppOpsService.systemReady()</span></span><br><span class="line">mAppOpsService.systemReady();</span><br><span class="line">mSystemReady = <span class="keyword">true</span>;</span><br><span class="line"><span class="keyword">if</span> (!mStartRunning) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>systemReady第一阶段的工作并不轻松，其主要职责是发送并处理与PRE_BOOT_COMPLETED广播相关的事情。目前代码中还没有接收该广播的地方，不过从代码中的注释中可猜测到，该广播接收者的工作似乎和系统升级有关。</p>
+<p><strong>第二阶段</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">ArrayList&lt;ProcessRecord&gt; procsToKill = null;</span><br><span class="line"> synchronized(mPidsSelfLocked) &#123;</span><br><span class="line">     for (int i=mPidsSelfLocked.size()-1; i&gt;=0; i--) &#123;</span><br><span class="line">         ProcessRecord proc = mPidsSelfLocked.valueAt(i);</span><br><span class="line">         if (!isAllowedWhileBooting(proc.info))&#123;</span><br><span class="line">             if (procsToKill == null) &#123;</span><br><span class="line">                 procsToKill = new ArrayList&lt;ProcessRecord&gt;();</span><br><span class="line">             &#125;</span><br><span class="line">             procsToKill.add(proc);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> synchronized(this) &#123;</span><br><span class="line">     if (procsToKill != null) &#123;</span><br><span class="line">         for (int i=procsToKill.size()-1; i&gt;=0; i--) &#123;</span><br><span class="line">             ProcessRecord proc = procsToKill.get(i);</span><br><span class="line">             Slog.i(TAG, &quot;Removing system update proc: &quot; + proc);</span><br><span class="line">              //把这些进程关闭，removeProcessLocked</span><br><span class="line">             removeProcessLocked(proc, true, false, &quot;system update done&quot;);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     // Now that we have cleaned up any update processes, we</span><br><span class="line">     // are ready to start launching real processes and know that</span><br><span class="line">     // we won&apos;t trample on them any more.</span><br><span class="line">       //至此，系统已经准备完毕</span><br><span class="line">     mProcessesReady = true;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> Slog.i(TAG, &quot;System now ready&quot;);</span><br><span class="line"> if(checkQbVersion())</span><br><span class="line"> &#123;</span><br><span class="line">     Slog.i(&quot;Qb&quot;,&quot;System now ready&quot;);</span><br><span class="line">     getQbAndroidManager();</span><br><span class="line">     mQbFlag = mQbAndroidManager.checkFlag();</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_AMS_READY,</span><br><span class="line">     SystemClock.uptimeMillis());</span><br><span class="line"></span><br><span class="line"> synchronized(this) &#123;</span><br><span class="line">     // Make sure we have no pre-ready processes sitting around.</span><br><span class="line">     //和工厂测试有关，不对此进行讨论</span><br><span class="line">     if (mFactoryTest == SystemServer.FACTORY_TEST_LOW_LEVEL) &#123;</span><br><span class="line">         ResolveInfo ri = mContext.getPackageManager()</span><br><span class="line">                 .resolveActivity(new Intent(Intent.ACTION_FACTORY_TEST),</span><br><span class="line">                         STOCK_PM_FLAGS);</span><br><span class="line">         CharSequence errorMsg = null;</span><br><span class="line">         if (ri != null) &#123;</span><br><span class="line">             ActivityInfo ai = ri.activityInfo;</span><br><span class="line">             ApplicationInfo app = ai.applicationInfo;</span><br><span class="line">             if ((app.flags&amp;ApplicationInfo.FLAG_SYSTEM) != 0) &#123;</span><br><span class="line">                 mTopAction = Intent.ACTION_FACTORY_TEST;</span><br><span class="line">                 mTopData = null;</span><br><span class="line">                 mTopComponent = new ComponentName(app.packageName,</span><br><span class="line">                         ai.name);</span><br><span class="line">             &#125; else &#123;</span><br><span class="line">                 errorMsg = mContext.getResources().getText(</span><br><span class="line">                         com.android.internal.R.string.factorytest_not_system);</span><br><span class="line">             &#125;</span><br><span class="line">         &#125; else &#123;</span><br><span class="line">             errorMsg = mContext.getResources().getText(</span><br><span class="line">                     com.android.internal.R.string.factorytest_no_action);</span><br><span class="line">         &#125;</span><br><span class="line">         if (errorMsg != null) &#123;</span><br><span class="line">             mTopAction = null;</span><br><span class="line">             mTopData = null;</span><br><span class="line">             mTopComponent = null;</span><br><span class="line">             Message msg = Message.obtain();</span><br><span class="line">             msg.what = SHOW_FACTORY_ERROR_MSG;</span><br><span class="line">             msg.getData().putCharSequence(&quot;msg&quot;, errorMsg);</span><br><span class="line">             mHandler.sendMessage(msg);</span><br><span class="line">         &#125;</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br><span class="line">//查询Settings数据，获取一些配置参数</span><br><span class="line"> retrieveSettings();</span><br></pre></td></tr></table></figure>
+<p>systemReady第二阶段的工作包括：</p>
+<ul>
+<li>杀死那些竟然在AMS还未启动完毕就先启动的应用进程。注意，这些应用进程一定是APK所在的Java进程，因为只有应用进程才会向AMS注册，而一般Native（例如mediaserver）进程是不会向AMS注册的。</li>
+</ul>
+<p><strong>第三阶段</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">    readGrantedUriPermissionsLocked();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//调用systemReady传入的参数，它是一个Runnable对象，下节将分析此函数</span></span><br><span class="line"><span class="keyword">if</span> (goingCallback != <span class="keyword">null</span>) goingCallback.run();</span><br><span class="line"><span class="keyword">synchronized</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (mFactoryTest != SystemServer.FACTORY_TEST_LOW_LEVEL) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">         <span class="comment">//从PKMS中查询那些persistent为1的ApplicationInfo</span></span><br><span class="line">            List apps = AppGlobals.getPackageManager().</span><br><span class="line">                getPersistentApplications(STOCK_PM_FLAGS);</span><br><span class="line">            <span class="keyword">if</span> (apps != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">int</span> N = apps.size();</span><br><span class="line">                <span class="keyword">int</span> i;</span><br><span class="line">                <span class="keyword">for</span> (i=<span class="number">0</span>; i&lt;N; i++) &#123;</span><br><span class="line">                    ApplicationInfo info</span><br><span class="line">                        = (ApplicationInfo)apps.get(i);</span><br><span class="line">             <span class="comment">//由于framework-res.apk已经由系统启动，所以这里需要把它去除</span></span><br><span class="line">             <span class="comment">//framework-res.apk的packageName为"android"</span></span><br><span class="line">                    <span class="keyword">if</span> (info != <span class="keyword">null</span> &amp;&amp;</span><br><span class="line">                            !info.packageName.equals(<span class="string">"android"</span>)) &#123;</span><br><span class="line">                     addAppLocked(info, <span class="keyword">false</span>);<span class="comment">//启动该Application所在的进程</span></span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (RemoteException ex) &#123;</span><br><span class="line">            <span class="comment">// pm is in same process, this will never happen.</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Start up initial activity.设置mBooting=true</span></span><br><span class="line">    mBooting = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (AppGlobals.getPackageManager().hasSystemUidErrors()) &#123;</span><br><span class="line">            Message msg = Message.obtain();</span><br><span class="line">            msg.what = SHOW_UID_ERROR_MSG;</span><br><span class="line">            mHandler.sendMessage(msg);<span class="comment">//处理那些Uid有错误的Application</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">long</span> ident = Binder.clearCallingIdentity();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Intent intent = <span class="keyword">new</span> Intent(Intent.ACTION_USER_STARTED);</span><br><span class="line">        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY</span><br><span class="line">                | Intent.FLAG_RECEIVER_FOREGROUND);</span><br><span class="line">        intent.putExtra(Intent.EXTRA_USER_HANDLE, mCurrentUserId);</span><br><span class="line">        broadcastIntentLocked(<span class="keyword">null</span>, <span class="keyword">null</span>, intent,</span><br><span class="line">                <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="number">0</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, AppOpsManager.OP_NONE,</span><br><span class="line">                <span class="keyword">false</span>, <span class="keyword">false</span>, MY_PID, Process.SYSTEM_UID, mCurrentUserId);</span><br><span class="line">        intent = <span class="keyword">new</span> Intent(Intent.ACTION_USER_STARTING);</span><br><span class="line">        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);</span><br><span class="line">        intent.putExtra(Intent.EXTRA_USER_HANDLE, mCurrentUserId);</span><br><span class="line">        broadcastIntentLocked(<span class="keyword">null</span>, <span class="keyword">null</span>, intent,</span><br><span class="line">                <span class="keyword">null</span>, <span class="keyword">new</span> IIntentReceiver.Stub() &#123;</span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">performReceive</span><span class="params">(Intent intent, <span class="keyword">int</span> resultCode, String data,</span></span></span><br><span class="line"><span class="function"><span class="params">                            Bundle extras, <span class="keyword">boolean</span> ordered, <span class="keyword">boolean</span> sticky, <span class="keyword">int</span> sendingUser)</span></span></span><br><span class="line"><span class="function">                            <span class="keyword">throws</span> RemoteException </span>&#123;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;, <span class="number">0</span>, <span class="keyword">null</span>, <span class="keyword">null</span>,</span><br><span class="line">                android.Manifest.permission.INTERACT_ACROSS_USERS, AppOpsManager.OP_NONE,</span><br><span class="line">                <span class="keyword">true</span>, <span class="keyword">false</span>, MY_PID, Process.SYSTEM_UID, UserHandle.USER_ALL);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        Binder.restoreCallingIdentity(ident);</span><br><span class="line">    &#125;</span><br><span class="line">  <span class="comment">//启动全系统第一个Activity，即Home</span></span><br><span class="line">    mStackSupervisor.resumeTopActivitiesLocked();</span><br><span class="line">    sendUserSwitchBroadcastsLocked(-<span class="number">1</span>, mCurrentUserId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>systemReady第三阶段的工作有3项：</p>
+<ul>
+<li>调用systemReady设置的回调对象goingCallback的run函数。</li>
+<li>启动那些声明了persistent的APK。</li>
+<li>启动桌面。在Home启动成功后，AMS才发送ACTION_BOOT_COMPLETED广播。</li>
+</ul>
+
+      
+    </div>
+
+    
+    <div>
+        
+            <div>
+    
+        <br>
+        <div style="text-align:center;color:#200000;font-size:30px;">-------------End-Thanks-------------</div>
+    
+</div>
+
+
+        
+    </div>
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android组件/" rel="tag"><i class="fa fa-tag"></i> Android组件</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/29/Android进程-创建/" rel="next" title="Android进程(创建)">
+                <i class="fa fa-chevron-left"></i> Android进程(创建)
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/01/PackageManagerService/" rel="prev" title="PackageManagerService">
+                PackageManagerService <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Melvin">
+            
+              <p class="site-author-name" itemprop="name">Melvin</p>
+              <p class="site-description motion-element" itemprop="description">Learn Android/Linux OS</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">33</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/babymelvin" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:hang.yasuo@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://my.csdn.net/" target="_blank" title="CSDN"><i class="fa fa-fw fa-globe"></i>CSDN</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#0-概述"><span class="nav-text">0.概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#1-AMS启动"><span class="nav-text">1.AMS启动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-ActivityManagerService-main"><span class="nav-text">1.1 ActivityManagerService.main</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-1-AMS构造函数"><span class="nav-text">1.1.1 AMS构造函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-2-AT-systemMain"><span class="nav-text">1.1.2 AT.systemMain</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-3-at-getSystemContext"><span class="nav-text">1.1.3 at.getSystemContext()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-4-m-startRunning"><span class="nav-text">1.1.4 m.startRunning</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-AMS-setSystemProcess"><span class="nav-text">1.2 AMS.setSystemProcess</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-1-mSystemThread-installSystemApplicationInfo"><span class="nav-text">1.2.1 mSystemThread.installSystemApplicationInfo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-2-mSelf-newProcessRecordLocked"><span class="nav-text">1.2.2  mSelf.newProcessRecordLocked</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-AMS-installSystemProviders"><span class="nav-text">1.3 AMS.installSystemProviders</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-4-ASM的systemReady分析"><span class="nav-text">1.4 ASM的systemReady分析</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" style="background:#F8F8F8">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DO WAHTEVER YOU WANT TO DO!</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.3.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

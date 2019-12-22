@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="Intent启动另外一个应用的activity，如Intent和Intent filter使用说明中。许多系统应用已经设置了内部的隐式Intent。">
+<meta name="keywords" content="Android组件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常见的Intent">
+<meta property="og:url" content="http://yoursite.com/2018/08/17/常见的Intent/index.html">
+<meta property="og:site_name" content="杭">
+<meta property="og:description" content="Intent启动另外一个应用的activity，如Intent和Intent filter使用说明中。许多系统应用已经设置了内部的隐式Intent。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-02-02T11:21:31.752Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="常见的Intent">
+<meta name="twitter:description" content="Intent启动另外一个应用的activity，如Intent和Intent filter使用说明中。许多系统应用已经设置了内部的隐式Intent。">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="杭" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/08/17/常见的Intent/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>常见的Intent | 杭</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">杭</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Practice makes perfect!</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/17/常见的Intent/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Melvin">
+      <meta itemprop="description" content="Learn Android/Linux OS">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="杭">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">常见的Intent
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-08-17 21:10:17" itemprop="dateCreated datePublished" datetime="2018-08-17T21:10:17+08:00">2018-08-17</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-02-02 19:21:31" itemprop="dateModified" datetime="2019-02-02T19:21:31+08:00">2019-02-02</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Intent启动另外一个应用的activity，如Intent和Intent filter使用说明中。许多系统应用已经设置了内部的隐式Intent。</p>
+<a id="more"></a>
+<h1 id="1-闹钟-alarm-clock"><a href="#1-闹钟-alarm-clock" class="headerlink" title="1.闹钟(alarm clock)"></a>1.闹钟(alarm clock)</h1><ul>
+<li>action：<code>ACTION_SET_ALARM</code></li>
+<li>extras:<ul>
+<li><code>EXTRA_HOUR</code>:闹钟小时数</li>
+<li><code>EXTRA_MINUTES</code>:闹钟分钟数</li>
+<li><code>EXTRA_MESSAGE</code>:闹钟的说明信息</li>
+<li><code>EXTRA_DAYS</code>：每周哪几天重复Calender中的数据，组成一个ArrayList.</li>
+<li><code>EXTRA_RINGTONE</code>:提供铃声的URI，或者没有铃声<code>VALUE_RINGTONE_SILENT</code></li>
+<li><code>EXTRA_VIBRATE</code>:是否振动，布尔值。</li>
+<li><code>EXTRA_SKIP_UI</code>:是否跳过响应app的UI。</li>
+</ul>
+</li>
+</ul>
+<p><strong>使用说明</strong><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createAlarm</span><span class="params">(String message,<span class="keyword">int</span> hour,<span class="keyword">int</span> minutes)</span></span>&#123;</span><br><span class="line">	Intent intent=<span class="keyword">new</span> Intent(AlarmClock.ACTION_SET_ALARM)</span><br><span class="line">		.putExtra(AlarmClock.EXTRA_MESSAGE,message)</span><br><span class="line">		.putExtra(AlarmClock.EXTRA_HOUR,hour)</span><br><span class="line">		.putExtra(AlarmClock.EXTRA_MINUTES,minutes);</span><br><span class="line">	<span class="keyword">if</span>(intent.resolveActivity(getPackageManager())!=<span class="keyword">null</span>)&#123;</span><br><span class="line">		startActivity(intent);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//需要声明权限</span></span><br><span class="line">&lt;uses-permission android:name=<span class="string">"com.android.alarm.permission.SET_ALARM"</span> /&gt;</span><br></pre></td></tr></table></figure></p>
+<p>响应app的xml过滤：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity ...&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=&quot;android.intent.action.SET_ALARM&quot; /&gt;</span><br><span class="line">        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
+<h1 id="2-创建计时器-timer"><a href="#2-创建计时器-timer" class="headerlink" title="2.创建计时器(timer)"></a>2.创建计时器(timer)</h1><ul>
+<li>action:<code>ACTION_SET_TIMER</code></li>
+<li>extras:<ul>
+<li><code>EXTRA_LENGTH</code>:计时器秒数</li>
+<li><code>EXTRA_MESSAGE</code>:计时器定制消息</li>
+<li><code>EXTRA_SKIP_UI</code>:是否显示目标UI</li>
+</ul>
+</li>
+</ul>
+<p><strong>使用说明</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public void startTimer(String message, int seconds) &#123;</span><br><span class="line">    Intent intent = new Intent(AlarmClock.ACTION_SET_TIMER)</span><br><span class="line">            .putExtra(AlarmClock.EXTRA_MESSAGE, message)</span><br><span class="line">            .putExtra(AlarmClock.EXTRA_LENGTH, seconds)</span><br><span class="line">            .putExtra(AlarmClock.EXTRA_SKIP_UI, true);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">//权限</span><br><span class="line">&lt;uses-permission android:name=&quot;com.android.alarm.permission.SET_ALARM&quot; /&gt;</span><br></pre></td></tr></table></figure></p>
+<p><strong>响应app</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity</span> <span class="attr">...</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"android.intent.action.SET_TIMER"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">category</span> <span class="attr">android:name</span>=<span class="string">"android.intent.category.DEFAULT"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h1 id="3-显示所有闹钟"><a href="#3-显示所有闹钟" class="headerlink" title="3.显示所有闹钟"></a>3.显示所有闹钟</h1><p>4.4之后添加。 这个需要闹钟功能的app同时提供完成。</p>
+<ul>
+<li>action:<code>ACTION_SHOW_ALARMS</code></li>
+</ul>
+<p><strong>响应app</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity ...&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=&quot;android.intent.action.SHOW_ALARMS&quot; /&gt;</span><br><span class="line">        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
+<h1 id="4-日历（calender）"><a href="#4-日历（calender）" class="headerlink" title="4.日历（calender）"></a>4.日历（calender）</h1><p>添加日历时间既要action，也要提供URI。</p>
+<ul>
+<li>action：<code>ACTION_INSERT</code></li>
+<li>data uri:<code>Events.CONTENT_URI</code></li>
+<li>mimetype:<code>vnd.android.cursor.dir/event</code></li>
+<li>extras:<ul>
+<li><code>EXTRA_EVENT_ALL_DAY</code>:是否是全天事件</li>
+<li><code>EXTRA_EVENT_BEGIN_TIME</code>：事件开始的时间(1970以后毫秒数)</li>
+<li><code>EXTRA_EVENT_END_TIME</code>:事件结束的时间(1970以后毫秒数)</li>
+<li><code>TITLE</code>:事件标题</li>
+<li><code>DESCRIPTION</code>:事件描述</li>
+<li><code>EVENT_LOCATION</code>:事件地点</li>
+<li><code>EVENT_EMAIL</code>:逗号分开邮箱地址</li>
+</ul>
+</li>
+</ul>
+<p><strong>使用说明</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public void addEvent(String title, String location, long begin, long end) &#123;</span><br><span class="line">    Intent intent = new Intent(Intent.ACTION_INSERT)</span><br><span class="line">            .setData(Events.CONTENT_URI)</span><br><span class="line">            .putExtra(Events.TITLE, title)</span><br><span class="line">            .putExtra(Events.EVENT_LOCATION, location)</span><br><span class="line">            .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, begin)</span><br><span class="line">            .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, end);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>响应app</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity ...&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=&quot;android.intent.action.INSERT&quot; /&gt;</span><br><span class="line">        &lt;data android:mimeType=&quot;vnd.android.cursor.dir/event&quot; /&gt;</span><br><span class="line">        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
+<h1 id="5-相机"><a href="#5-相机" class="headerlink" title="5.相机"></a>5.相机</h1><h2 id="5-1-捕获图片或录像并返回"><a href="#5-1-捕获图片或录像并返回" class="headerlink" title="5.1 捕获图片或录像并返回"></a>5.1 捕获图片或录像并返回</h2><ul>
+<li><p>action:</p>
+<ul>
+<li><code>ACTION_IMAGE_CAPTURE</code>:捕获图片</li>
+<li><code>ACTION_VIDEO_CAPTURE</code>:捕获视频</li>
+</ul>
+</li>
+<li><p>extras：</p>
+<ul>
+<li><code>EXTRA_OUTPUT</code>:返回内容的保存URI。</li>
+</ul>
+</li>
+</ul>
+<p>当相机应用成功返回到你自己的Activity(<code>onActivityResult()</code>回调)，就可以在<code>EXTRA_OUPUT</code>路径中找到返回内容。</p>
+<p><strong>使用</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">static final int REQUEST_IMAGE_CAPTURE=1;</span><br><span class="line">static final Uri mLocationForPhotos;</span><br><span class="line">public void capturePhoto(String targetFilename)&#123;</span><br><span class="line">	Intent intent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);</span><br><span class="line">	intent.putExtra(MediaStore.EXTRA_OUTPUT,Uri.withAppendedPath(mLocaitonForPhotos,targetFilename));</span><br><span class="line">	if(intent.resolveActivity(getPackageManager()) != null)&#123;</span><br><span class="line">		startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line">@Override</span><br><span class="line">protected void onActivityResult(int requestCode, int resultCode, Intent data) &#123;</span><br><span class="line">    if (requestCode == REQUEST_IMAGE_CAPTURE &amp;&amp; resultCode == RESULT_OK) &#123;</span><br><span class="line">        Bitmap thumbnail = data.getParcelable(&quot;data&quot;);</span><br><span class="line">        // Do other work with full size photo saved in mLocationForPhotos</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>响应的app</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity ...&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=&quot;android.media.action.IMAGE_CAPTURE&quot; /&gt;</span><br><span class="line">        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
+<p>响应的app处理intent，首先检查<code>EXTRA_OUTPUT</code>,并且调用<code>setResult()</code>包含缩略图extra的key是<strong>data</strong><br>样例：</p>
+<ul>
+<li><a href="https://developer.android.com/training/camera/photobasics" target="_blank" rel="noopener">take photos</a></li>
+<li><a href="https://developer.android.com/training/camera/videobasics" target="_blank" rel="noopener">record videos</a></li>
+</ul>
+<h2 id="5-2-静态图片启动相机"><a href="#5-2-静态图片启动相机" class="headerlink" title="5.2 静态图片启动相机"></a>5.2 静态图片启动相机</h2><ul>
+<li>aciton:<code>INTENT_ACTION_IMAGE_CAMERA</code></li>
+</ul>
+<p><strong>使用</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public void capturePhoto() &#123;</span><br><span class="line">    Intent intent = new Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivityForResult(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>响应app</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity ...&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=&quot;android.media.action.STILL_IMAGE_CAMERA&quot; /&gt;</span><br><span class="line">        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="5-3-用视频模式启动相机"><a href="#5-3-用视频模式启动相机" class="headerlink" title="5.3 用视频模式启动相机"></a>5.3 用视频模式启动相机</h2><ul>
+<li>action:<code>INTENT_ACTION_VIDEO_CAMERA</code></li>
+</ul>
+<p><strong>使用</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public void capturePhoto() &#123;</span><br><span class="line">    Intent intent = new Intent(MediaStore.INTENT_ACTION_VIDEO_CAMERA);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivityForResult(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>响应</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity ...&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=&quot;android.media.action.VIDEO_CAMERA&quot; /&gt;</span><br><span class="line">        &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
+<h1 id="6-联系人"><a href="#6-联系人" class="headerlink" title="6 联系人"></a>6 联系人</h1><h2 id="6-1-选择一个联系人"><a href="#6-1-选择一个联系人" class="headerlink" title="6.1 选择一个联系人"></a>6.1 选择一个联系人</h2><p>通过<code>onActivityResult()</code>返回内容(URI).如果没有提供<code>READ_CONTENT</code>权限，响应app提供临时权限。</p>
+<ul>
+<li>action：<code>ACTION_PICK</code></li>
+<li>mime type:<code>Contacts.CONTENT_TYPE</code></li>
+</ul>
+<p><strong>使用</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">static final int REQUEST_SELECT_CONTACT = 1;</span><br><span class="line"></span><br><span class="line">public void selectContact() &#123;</span><br><span class="line">    Intent intent = new Intent(Intent.ACTION_PICK);</span><br><span class="line">    intent.setType(ContactsContract.Contacts.CONTENT_TYPE);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivityForResult(intent, REQUEST_SELECT_CONTACT);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">protected void onActivityResult(int requestCode, int resultCode, Intent data) &#123;</span><br><span class="line">    if (requestCode == REQUEST_SELECT_CONTACT &amp;&amp; resultCode == RESULT_OK) &#123;</span><br><span class="line">        Uri contactUri = data.getData();</span><br><span class="line">        // Do something with the selected contact at contactUri</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>见 <a href="https://developer.android.com/training/contacts-provider/retrieve-details" target="_blank" rel="noopener">Retrieve details for a contact</a></p>
+<h2 id="6-2-选择特定联系人"><a href="#6-2-选择特定联系人" class="headerlink" title="6.2 选择特定联系人"></a>6.2 选择特定联系人</h2><p>特定联系人如号码，姓名等。</p>
+<ul>
+<li>action:<code>ACTION_PICK</code></li>
+<li>mime type:<ul>
+<li><code>CommonDataKinds.Phone.CONTENT_TYPE</code>:号码选择联系人</li>
+<li><code>CommonDataKinds.Email.CONTENT_TYPE</code>:邮箱地址选择联系人</li>
+<li><code>CommonDataKinds.StructuredPostal.CONTENT_TYPE</code>:邮寄地址选择联系人</li>
+</ul>
+</li>
+</ul>
+<p><strong>使用</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">static final int REQUEST_SELECT_PHONE_NUMBER=1;</span><br><span class="line">public void selectContact()&#123;</span><br><span class="line">	//start an activity for the user to pick a phone number from contacts</span><br><span class="line">	Intent intent=new Intent(Intent.ACTION_PICK);</span><br><span class="line">	intent.setType(CommonDataKinds.Phone.CONTENT_TYPE);</span><br><span class="line">	if(intent.resolveActivity(getPackageManager())!=null)&#123;</span><br><span class="line">		startActivityForResult(intent,REQUEST_SELECT_PHONE_NUMBER);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">protected void onActivityResult(int requestCode,int resultCode,Intent data)&#123;</span><br><span class="line">	//get the URI and query the content provider for the phone number</span><br><span class="line">	Uri contactUri=data.getData();</span><br><span class="line">	String[] projection=new String[]&#123;CommonDataKinds.Phone.NUMBER&#125;;</span><br><span class="line">	Cursor cursor=getContentResolver().query(contactUri,projection,null,null,null);</span><br><span class="line">	//if the cursor returned is valid,get the phone number</span><br><span class="line">	if(cursor!=null &amp;&amp; cursor.moveToFirst())&#123;</span><br><span class="line">		int numberIndex=cursor.getColumnIndex(CommonDataKinds.Phone.NUMBER);</span><br><span class="line">		String number=cursor.getString(numberIndex);</span><br><span class="line">		//do something with the phone number</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="6-3显示contact"><a href="#6-3显示contact" class="headerlink" title="6.3显示contact"></a>6.3显示contact</h2><p>两种方式获得contact的URI</p>
+<ul>
+<li>使用<code>ACTION_PICK</code>,前面说的那样(不需要app权限)</li>
+<li><p>直接获得联系人所有列表（需要app<code>READ_CONTACTS</code>权限）。<a href="https://developer.android.com/training/contacts-provider/retrieve-names" target="_blank" rel="noopener">Retrieve a list of contacts</a></p>
+</li>
+<li><p>action:<code>ACTION_VIEW</code></p>
+</li>
+<li>uri scheme:<code>content:&lt;URI&gt;</code></li>
+</ul>
+<p><strong>使用</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public void viewContact(Uri contactUri) &#123;</span><br><span class="line">    Intent intent = new Intent(Intent.ACTION_VIEW, contactUri);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="6-4编辑已有联系人"><a href="#6-4编辑已有联系人" class="headerlink" title="6.4编辑已有联系人"></a>6.4编辑已有联系人</h2><ul>
+<li>action:<code>ACTION_EDIT</code></li>
+<li>URI scheme:<code>content:&lt;URI&gt;</code></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public void editContact(Uri contactUri, String email) &#123;</span><br><span class="line">    Intent intent = new Intent(Intent.ACTION_EDIT);</span><br><span class="line">    intent.setData(contactUri);</span><br><span class="line">    intent.putExtra(Intents.Insert.EMAIL, email);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>样例：<a href="https://developer.android.com/training/contacts-provider/modify-data" target="_blank" rel="noopener">Modify contacts using intents</a></p>
+<h2 id="6-5插入联系人"><a href="#6-5插入联系人" class="headerlink" title="6.5插入联系人"></a>6.5插入联系人</h2><ul>
+<li>action:<code>ACTION_INSERT</code></li>
+<li>mime type:<code>Contacts.CONTENT_TYPE</code></li>
+</ul>
+<p><strong>使用</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public void insertContact(String name, String email) &#123;</span><br><span class="line">    Intent intent = new Intent(Intent.ACTION_INSERT);</span><br><span class="line">    intent.setType(Contacts.CONTENT_TYPE);</span><br><span class="line">    intent.putExtra(Intents.Insert.NAME, name);</span><br><span class="line">    intent.putExtra(Intents.Insert.EMAIL, email);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="7-邮件"><a href="#7-邮件" class="headerlink" title="7.邮件"></a>7.邮件</h1><p>编写邮件很多action，由是都需要附件和一些详细信息决定，如接受者，主题等。</p>
+<ul>
+<li><p>action:</p>
+<ul>
+<li><code>ACTION_SENDTO</code>:没有附件</li>
+<li><code>ACTION_SEND</code>:一个附件</li>
+<li><code>ACTION_SEND_MULTIPLE</code>:多个附件</li>
+</ul>
+</li>
+<li><p>mime type:</p>
+<ul>
+<li><code>text/plain</code></li>
+<li><code>*/*</code></li>
+</ul>
+</li>
+<li><p>extras:</p>
+<ul>
+<li><code>Intent.EXTRA_EMAIL</code>:所有接受人的地址</li>
+<li><code>Intent.EXTRA_CC</code>:所有CC接受者</li>
+<li><code>Intent.EXTRA_BCC</code>:所有BCC接受者</li>
+<li><code>Intent.EXTRA_SUBJECT</code>:邮件主题</li>
+<li><code>Intent.EXTRA_TEXT</code>:邮件内容</li>
+<li><code>Intent.EXTRA_STREAM</code>:附件Uri，如果是多个附件，要提供邮件数组。</li>
+</ul>
+</li>
+</ul>
+<p><strong>使用</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public void composeEmail(String[] addresses, String subject, Uri attachment) &#123;</span><br><span class="line">    Intent intent = new Intent(Intent.ACTION_SEND);</span><br><span class="line">    intent.setType(&quot;*/*&quot;);</span><br><span class="line">    intent.putExtra(Intent.EXTRA_EMAIL, addresses);</span><br><span class="line">    intent.putExtra(Intent.EXTRA_SUBJECT, subject);</span><br><span class="line">    intent.putExtra(Intent.EXTRA_STREAM, attachment);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果保证邮件是被email应用，而不是社交应用使用。使用<code>ACTION_SENDTO</code>,包含数组格式(scheme)<code>mailto:</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public void composeEmail(String[] addresses, String subject) &#123;</span><br><span class="line">    Intent intent = new Intent(Intent.ACTION_SENDTO);</span><br><span class="line">    intent.setData(Uri.parse(&quot;mailto:&quot;)); // only email apps should handle this</span><br><span class="line">    intent.putExtra(Intent.EXTRA_EMAIL, addresses);</span><br><span class="line">    intent.putExtra(Intent.EXTRA_SUBJECT, subject);</span><br><span class="line">    if (intent.resolveActivity(getPackageManager()) != null) &#123;</span><br><span class="line">        startActivity(intent);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>响应过滤</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity</span> <span class="attr">...</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"android.intent.action.SEND"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">data</span> <span class="attr">android:type</span>=<span class="string">"*/*"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">category</span> <span class="attr">android:name</span>=<span class="string">"android.intent.category.DEFAULT"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"android.intent.action.SENDTO"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">data</span> <span class="attr">android:scheme</span>=<span class="string">"mailto"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">category</span> <span class="attr">android:name</span>=<span class="string">"android.intent.category.DEFAULT"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h1 id="8-文件存储"><a href="#8-文件存储" class="headerlink" title="8.文件存储"></a>8.文件存储</h1><h2 id="8-1-获得指定类型的文件"><a href="#8-1-获得指定类型的文件" class="headerlink" title="8.1 获得指定类型的文件"></a>8.1 获得指定类型的文件</h2><p>使用<code>ACTION_GET_CONTENT</code>和特定MIME类型来获得用户选择的文件，并给app返回一个引用。<strong>返回的应用是和当前activity的声明周期同步的</strong>。要之后使用，自己要进行备份。</p>
+<p>在<code>onActivityResult()</code>返回指向文件的返回的Uri可以是任意类型.Uri，如<code>http:</code>,<code>file:</code>,<code>content:</code>。如果限制只是来至content provider(<code>content:</code>)通过<code>openFileDescriptor()</code>获得，应该在intent中添加<code>CATEGORY_OPENABLE</code>.</p>
+<p>4.3以上允许选择多个文件<code>EXTRA_ALLOW_MULTIPLE</code>.可以通过<code>getClipData()</code>来获得多个文件内容。</p>
+<ul>
+<li>action:<code>ACTION_GET_CONTENT</code></li>
+<li>mime type:和用户选择文件类型相对应</li>
+<li><p>extras:</p>
+<ul>
+<li><code>EXTRA_ALLOW_MULTIPLE</code>:是否能够同时选择多个文件。</li>
+<li><code>EXTRA_LOCAL_ONLY</code>:只是本地文件</li>
+</ul>
+</li>
+<li><p>category(可选的)</p>
+<ul>
+<li><code>CATEGORY_OPENABLE</code>:返回openable文件通过<code>openFileDescriptor()</code>来进行表示。</li>
+</ul>
+</li>
+</ul>
+<p><strong>获得一个图片</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">static final int REQUEST_IMAGE_GET=1;</span><br><span class="line">public void selectImage()&#123;</span><br><span class="line">	Intent intent=new Intent(Intent.ACTION_GET_CONTENT);</span><br><span class="line">	intent.setType(&quot;image/*&quot;);</span><br><span class="line">	if(intent.resolveActivity(getPackageManager())!=null)&#123;</span><br><span class="line">		startActivityForResult(intent,REQUEST_IMAGE_GET);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">protected void onActivityResult(int requestCode,int resultCode,Intent data)&#123;</span><br><span class="line">	if(requestCode == REQUEST_IMAGE_GET &amp;&amp; resultCode== RESULT_OK)&#123;</span><br><span class="line">		Bitmap thumbnail =data.getParcelable(&quot;data&quot;);</span><br><span class="line">		Uri fullPotoUri=data.getData();</span><br><span class="line"></span><br><span class="line">		//do work with photo saved at fullPhotoUri</span><br><span class="line">		...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>响应返回一个图片的过滤</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity&gt;</span><br><span class="line">	&lt;intent-filter&gt;</span><br><span class="line">		&lt;action android:name=&quot;android.intent.action.GET_CONTENT&quot;/&gt;</span><br><span class="line">		&lt;data android:type=&quot;image/*&quot;/&gt;</span><br><span class="line">		&lt;!--The OPENABLE category declares that the returned file is accessible</span><br><span class="line">             from a content provider that supports OpenableColumns</span><br><span class="line">             and ContentResolver.openFileDescriptor()--&gt;</span><br><span class="line">		&lt;category android:name=&quot;android.intent.category.OPENABLE&quot;/&gt;</span><br><span class="line">	&lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="8-2-打开特定类型的文件"><a href="#8-2-打开特定类型的文件" class="headerlink" title="8.2 打开特定类型的文件"></a>8.2 打开特定类型的文件</h2><p><code>ACTION_GET_CONTENT</code>是使用文件内容的副本导入到自己的app。4.4以后可以使用别的app来打开和创建文件，并且由其他应用来管理。使用<code>ACTION_OPEN_DOCUMENT</code>和<code>ACTION_CREATE_DOCUMENT</code>.</p>
+<ul>
+<li>action:<code>ACTION_OPEN_DOCUMENT</code>和<code>ACTION_CREATE_DOCUMENT</code></li>
+<li>extras:<ul>
+<li><code>EXTRA_MIME_TYPES</code>:和文件类型对应的MIME 类型。但是用这个必须初始MIME类型<code>setType()</code>值为<code>*/*</code>.</li>
+<li><code>EXTRA_ALLOW_MUTIPLE</code>:是否允许同时选择多个文件</li>
+<li><code>EXTRA_TITLE</code>:针对<code>ACTION_CREATE_DOCUMENT</code>具体化新建文件的名称。</li>
+<li><code>EXTRA_LOCAL_ONLY</code>:是否选择本地文件。</li>
+</ul>
+</li>
+<li>category:<ul>
+<li><code>CATEGORY_OPENABLE</code>:返回的”openable”文件，能够使用<code>openFileDescriptor()</code>文件打开。</li>
+</ul>
+</li>
+</ul>
+<p><strong>获得一个图片</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">static final int REQUEST_IMAGE_OPEN=1;</span><br><span class="line">public void selectImage()&#123;</span><br><span class="line">	Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);</span><br><span class="line">	intent.setType(&quot;image/*&quot;);</span><br><span class="line">	intent.addCategory(Intent.CATEGORY_OPENABLE);</span><br><span class="line">	// Only the system receives the ACTION_OPEN_DOCUMENT, so no need to test.</span><br><span class="line">    startActivityForResult(intent, REQUEST_IMAGE_OPEN);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">protected void onActivityResult(int requestCode,int resultCode,Intent data)&#123;</span><br><span class="line">	if(requestCode==REQUEST_IMAGE_OPEN &amp;&amp; resultCode == RESULT_OK)&#123;</span><br><span class="line">		Uri fullPhotoUri=data.getData();</span><br><span class="line">		//do work with full size phote saved at fullPhotoUri</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第三方app不能对<code>ACTION_OPEN_DOCUMENT</code>做出反应。而是系统接收这个显示所有的文件。</p>
+<p>为了允许你的app文件，允许其他应用打开他们，不需要实现<code>DocumentProvider</code>并且包含一个intent-filter<code>PROVIDER_INTERFACE</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;provider ...</span><br><span class="line">    android:grantUriPermissions=&quot;true&quot;</span><br><span class="line">    android:exported=&quot;true&quot;</span><br><span class="line">    android:permission=&quot;android.permission.MANAGE_DOCUMENTS&quot;&gt;</span><br><span class="line">    &lt;intent-filter&gt;</span><br><span class="line">        &lt;action android:name=&quot;android.content.action.DOCUMENTS_PROVIDER&quot; /&gt;</span><br><span class="line">    &lt;/intent-filter&gt;</span><br><span class="line">&lt;/provider&gt;</span><br></pre></td></tr></table></figure>
+<p>样例：<a href="https://developer.android.com/guide/topics/providers/document-provider" target="_blank" rel="noopener">Open files using storage access framework</a></p>
+<h1 id="9-音乐或视频"><a href="#9-音乐或视频" class="headerlink" title="9.音乐或视频"></a>9.音乐或视频</h1><h2 id="9-1播放一个音乐文件"><a href="#9-1播放一个音乐文件" class="headerlink" title="9.1播放一个音乐文件"></a>9.1播放一个音乐文件</h2><ul>
+<li>action:<code>ACTION_VIEW</code></li>
+<li><p>uri schemem:</p>
+<ul>
+<li><code>file:&lt;URI&gt;</code></li>
+<li><code>content:&lt;URI&gt;</code></li>
+<li><code>http:&lt;URL&gt;</code></li>
+</ul>
+</li>
+<li><p>MIME type:</p>
+<ul>
+<li><code>audio/*</code></li>
+<li><code>application/ogg</code></li>
+<li><code>application/x-ogg</code></li>
+<li><code>application/itunes</code></li>
+<li>或其他类型</li>
+</ul>
+</li>
+</ul>
+<p><strong>使用</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public void playMedia(Uri file)&#123;</span><br><span class="line">	Intent intent=new Intent(Intent.ACTION_VIEW);</span><br><span class="line">	intent.setData(file);</span><br><span class="line">	if(intent.resolveActiivty(getPackageManager()!=null)&#123;</span><br><span class="line">		startActivity(intent);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>响应app 过滤</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;activity&gt;</span><br><span class="line">	&lt;intent-filter&gt;</span><br><span class="line">		&lt;action android:name=&quot;android.intent.action.VIEW&quot;/&gt;</span><br><span class="line">		&lt;data android:type=&quot;audio/*&quot;/&gt;</span><br><span class="line">		&lt;data android:type=&quot;application/ogg&quot;/&gt;</span><br><span class="line">		&lt;category android:name=&quot;android.intent.category.DEFAULT&quot;/&gt;</span><br><span class="line">	&lt;/intent-filter&gt;</span><br><span class="line">&lt;/activity&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="9-2播放基于搜索的音乐"><a href="#9-2播放基于搜索的音乐" class="headerlink" title="9.2播放基于搜索的音乐"></a>9.2播放基于搜索的音乐</h2><p>可以用来响应语音的intent。搜索匹配的列表，播放其中的内容。提供<code>EXTRA_MEDIA_FOCUS</code>提供模式。</p>
+<ul>
+<li>action:<code>INTENT_ACTION_MEDIA_PLAY_FROM_SEACRCH</code></li>
+<li>extras:<ul>
+<li><code>MediaStore.EXTRA_MEDIA_FOCUS</code>(必须的)显示搜索模式（艺术家，专辑，歌曲或者播放列表）。如果想听一个歌曲，应该有另外三个额外的内容。歌曲标题，艺术家和专辑。有下面搜索模式：<ul>
+<li><strong>任意</strong>：<code>vnd.android.cursor.item/*</code>播放任意音乐。接收app应该自己选择比如播放者的播放列表。额外参数:<ul>
+<li><code>QUERY</code>(必须的)。空字符串。为了向后兼容，比如当不知道搜索模式可以用这个作为未结构化搜索。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    <div>
+        
+            <div>
+    
+        <br>
+        <div style="text-align:center;color:#200000;font-size:30px;">-------------End-Thanks-------------</div>
+    
+</div>
+
+
+        
+    </div>
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android组件/" rel="tag"><i class="fa fa-tag"></i> Android组件</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/15/Intent和IntentFilter/" rel="next" title="Intent和IntentFilter">
+                <i class="fa fa-chevron-left"></i> Intent和IntentFilter
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/07/权限检查/" rel="prev" title="权限检查">
+                权限检查 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Melvin">
+            
+              <p class="site-author-name" itemprop="name">Melvin</p>
+              <p class="site-description motion-element" itemprop="description">Learn Android/Linux OS</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">33</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/babymelvin" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:hang.yasuo@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://my.csdn.net/" target="_blank" title="CSDN"><i class="fa fa-fw fa-globe"></i>CSDN</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-闹钟-alarm-clock"><span class="nav-text">1.闹钟(alarm clock)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-创建计时器-timer"><span class="nav-text">2.创建计时器(timer)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-显示所有闹钟"><span class="nav-text">3.显示所有闹钟</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-日历（calender）"><span class="nav-text">4.日历（calender）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-相机"><span class="nav-text">5.相机</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-捕获图片或录像并返回"><span class="nav-text">5.1 捕获图片或录像并返回</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-静态图片启动相机"><span class="nav-text">5.2 静态图片启动相机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3-用视频模式启动相机"><span class="nav-text">5.3 用视频模式启动相机</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-联系人"><span class="nav-text">6 联系人</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-1-选择一个联系人"><span class="nav-text">6.1 选择一个联系人</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-选择特定联系人"><span class="nav-text">6.2 选择特定联系人</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-3显示contact"><span class="nav-text">6.3显示contact</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-4编辑已有联系人"><span class="nav-text">6.4编辑已有联系人</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-5插入联系人"><span class="nav-text">6.5插入联系人</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-邮件"><span class="nav-text">7.邮件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#8-文件存储"><span class="nav-text">8.文件存储</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#8-1-获得指定类型的文件"><span class="nav-text">8.1 获得指定类型的文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-2-打开特定类型的文件"><span class="nav-text">8.2 打开特定类型的文件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#9-音乐或视频"><span class="nav-text">9.音乐或视频</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#9-1播放一个音乐文件"><span class="nav-text">9.1播放一个音乐文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-2播放基于搜索的音乐"><span class="nav-text">9.2播放基于搜索的音乐</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" style="background:#F8F8F8">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DO WAHTEVER YOU WANT TO DO!</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.3.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

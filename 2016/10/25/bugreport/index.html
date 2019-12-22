@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="1.概述bugreport中路径为framework/native/cmds,生成可执行文件/system/bin/bugreport.bugreport信息量非常大，几乎涵盖系统各个层面内容。  通过启动property_set(&amp;quot;ctl.start&amp;quot;,&amp;quot;dumpstate&amp;quot;);启动dumpstate服务(由init进程fork出来). bugreport">
+<meta name="keywords" content="Android调试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="bugreport">
+<meta property="og:url" content="http://yoursite.com/2016/10/25/bugreport/index.html">
+<meta property="og:site_name" content="杭">
+<meta property="og:description" content="1.概述bugreport中路径为framework/native/cmds,生成可执行文件/system/bin/bugreport.bugreport信息量非常大，几乎涵盖系统各个层面内容。  通过启动property_set(&amp;quot;ctl.start&amp;quot;,&amp;quot;dumpstate&amp;quot;);启动dumpstate服务(由init进程fork出来). bugreport">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-02-02T11:21:31.745Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="bugreport">
+<meta name="twitter:description" content="1.概述bugreport中路径为framework/native/cmds,生成可执行文件/system/bin/bugreport.bugreport信息量非常大，几乎涵盖系统各个层面内容。  通过启动property_set(&amp;quot;ctl.start&amp;quot;,&amp;quot;dumpstate&amp;quot;);启动dumpstate服务(由init进程fork出来). bugreport">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="杭" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/10/25/bugreport/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>bugreport | 杭</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">杭</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Practice makes perfect!</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/10/25/bugreport/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Melvin">
+      <meta itemprop="description" content="Learn Android/Linux OS">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="杭">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">bugreport
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2016-10-25 23:43:26" itemprop="dateCreated datePublished" datetime="2016-10-25T23:43:26+08:00">2016-10-25</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-02-02 19:21:31" itemprop="dateModified" datetime="2019-02-02T19:21:31+08:00">2019-02-02</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="1-概述"><a href="#1-概述" class="headerlink" title="1.概述"></a>1.概述</h1><p>bugreport中路径为<code>framework/native/cmds</code>,生成可执行文件<code>/system/bin/bugreport</code>.bugreport信息量非常大，几乎涵盖系统各个层面内容。</p>
+<ul>
+<li>通过启动<code>property_set(&quot;ctl.start&quot;,&quot;dumpstate&quot;);</code>启动dumpstate服务(由init进程fork出来).</li>
+<li>bugreport进程通过socket套接字与dumpstate进行通讯</li>
+<li>bugreport作为客户端读取<code>length=read(s,buffer,sizeofo(buffer))</code>,并将读到的内容进行输出。<code>fwrite(buffer,1,length,stdout)</code><a id="more"></a>
+</li>
+</ul>
+<h1 id="2-dumpstate"><a href="#2-dumpstate" class="headerlink" title="2.dumpstate"></a>2.<code>dumpstate</code></h1><h2 id="2-1-处理SIGPIPE信号"><a href="#2-1-处理SIGPIPE信号" class="headerlink" title="2.1 处理SIGPIPE信号"></a>2.1 处理SIGPIPE信号</h2><p>dumpstate为socket服务端，如果一个客服端关闭调用两次write，第二次会产生SIGPIPE信号，该信号默认结束进程。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">memset</span>(&amp;sigact,<span class="number">0</span>,<span class="keyword">sizeof</span>(sigact));</span><br><span class="line"><span class="comment">//句柄来处理，SIG_IGNORE则丢弃不处理该信号</span></span><br><span class="line">sigact.sa_hanlder=sigpipe_handler;</span><br><span class="line">sigaction(SIGPIPE,&amp;sigact,<span class="literal">NULL</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="2-2-设置进程优先级"><a href="#2-2-设置进程优先级" class="headerlink" title="2.2 设置进程优先级"></a>2.2 设置进程优先级</h2><p>将dumpstate设置成高优先级，避免被OOM杀掉。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//1.linux设置优先级</span></span><br><span class="line">setpriority(PRIO_PROCESS,<span class="number">0</span>,<span class="number">-20</span>);</span><br><span class="line"><span class="comment">//2.self表示当前进程(链接),android oom概念</span></span><br><span class="line">FILE *oom_adj=fopen(<span class="string">"/proc/self/oom_adj"</span>,<span class="string">"w"</span>);</span><br><span class="line"><span class="keyword">if</span>(oom_adj)&#123;</span><br><span class="line">    <span class="built_in">fputs</span>(<span class="string">"-17"</span>,oom_adj);</span><br><span class="line">    fclose(oom_adj);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中<code>setpriority(int which,int who,int pri)</code>,表示设置程序调度优先级.可用<code>getpriority</code>获取：</p>
+<ul>
+<li>which:取值可能为<code>PRIO_PROCESS</code>,<code>PRIO_PGRP</code>,<code>PRIO_USER</code>。</li>
+<li>who:是和which取值相对应相关。<code>PRIO_PROCESS</code>时候表示取进程id,<code>PRIO_PGRP</code>时候取进程组id,<code>PRIO_USER</code>时候取用户id。取0的时候表示调用的当前进程.</li>
+<li>pri:范围是<code>-20~19</code>,默认为0.越小，优先级越高.</li>
+</ul>
+<h2 id="2-3-收集Dalvik和native进程栈信息"><a href="#2-3-收集Dalvik和native进程栈信息" class="headerlink" title="2.3 收集Dalvik和native进程栈信息"></a>2.3 收集Dalvik和native进程栈信息</h2><p><code>dump_traces()</code>函数来实现收集过程，<code>/data/anr/traces.txt</code>文件是由属性<code>dalvik.vm.stack-trace-file</code>指定。</p>
+<ul>
+<li>如果存在<code>/data/anr/traces.txt</code>文件，通过rename改成<code>/data/anr/traces.txt.anr</code>文件</li>
+<li>新建新的一个空的<code>traces.txt</code>文件来收集栈的dump信息。</li>
+</ul>
+<p>遍历<code>/proc</code>目录，然后<code>kill -QUIT</code>(-3,相当于ctrl+d)所有Dalik进程<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">DIR *proc=opendir(<span class="string">"/proc"</span>);</span><br><span class="line"><span class="comment">//当进程完成dump，发出通知</span></span><br><span class="line"><span class="keyword">int</span> ifd=inotify_init();</span><br><span class="line"><span class="comment">//指定pathname,mask关心的通知事件，通知写入发出通知</span></span><br><span class="line"><span class="keyword">int</span> wfd=inotify_add_watch(ifd,traces_path,IN_CLOSE_WRITE);</span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">dirent</span> *<span class="title">d</span>;</span></span><br><span class="line"><span class="keyword">int</span> dalvik_found=<span class="number">0</span>;</span><br><span class="line"><span class="comment">//读一个目录</span></span><br><span class="line"><span class="keyword">while</span>((d=readdir(proc)))&#123;</span><br><span class="line">    <span class="comment">// proc子目录是进程(号)</span></span><br><span class="line">    <span class="keyword">int</span> pid=atoi(d-&gt;d_name);</span><br><span class="line">    <span class="comment">//proc/%d/exe 执行程序名称</span></span><br><span class="line">    <span class="comment">//1. linux:ps -p 2345 -o comm</span></span><br><span class="line">    <span class="comment">//2. android:busybox ps</span></span><br><span class="line">    snprint(path,<span class="keyword">sizeof</span>(path),<span class="string">"/proc/%d/exe"</span>,pid);</span><br><span class="line">    <span class="keyword">ssize_t</span> len=readlink(path,data,<span class="keyword">sizeof</span>(data)<span class="number">-1</span>);</span><br><span class="line">    <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(data,<span class="string">"/system/bin/app_process"</span>))&#123;</span><br><span class="line">        <span class="comment">//执行的命令行参数</span></span><br><span class="line">        <span class="built_in">snprintf</span>(path,<span class="keyword">sizeof</span>(pat),<span class="string">"proc/%d/cmdline"</span>,pid)</span><br><span class="line">        <span class="keyword">int</span> fd=open(path,O_READONLY);</span><br><span class="line">        len=read(fd,date,sizeoof(data)<span class="number">-1</span>);</span><br><span class="line">        close(fd);</span><br><span class="line">        <span class="comment">//跳过zygote进程</span></span><br><span class="line">        <span class="keyword">if</span>(!<span class="built_in">strcmp</span>(data,<span class="string">"zygote"</span>))&#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//说明dalvik进程来自app_process</span></span><br><span class="line">        ++dalvik_found;</span><br><span class="line">        <span class="keyword">if</span>(kill(pid,SIGQUIT))&#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">"kill(%d,SIGQUIT):%s\n"</span>,pid,strerror(errno));</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//等待写完成通知</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">pollfd</span> <span class="title">pfd</span>=&#123;</span>ifd,POLLIN,<span class="number">0</span>&#125;;</span><br><span class="line">        <span class="comment">//利用inotify来添加200ms超时判断.</span></span><br><span class="line">        <span class="keyword">int</span> ret=poll(&amp;pfd,<span class="number">1</span>,<span class="number">200</span>);</span><br><span class="line">        <span class="keyword">if</span>(ret&lt;<span class="number">0</span>)&#123;</span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(ret==<span class="number">0</span>)&#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">"warining:time out dumping pid%d\n"</span>,pid);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            struct inotify_event id;</span><br><span class="line">            read(ifd,&amp;ie,<span class="keyword">sizeof</span>(ie));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;<span class="keyword">else</span> <span class="keyword">if</span>(should_dump_native_traces(data))&#123;</span><br><span class="line">        <span class="comment">//dump native process if appropriate</span></span><br><span class="line">        <span class="keyword">if</span>(lseek(fd,<span class="number">0</span>,SEEK_END)&lt;<span class="number">0</span>)&#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">"lseek:%s\n"</span>,strerror(errno));</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            dump_backtrace_to_file(pid,fd);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//完成返回文件名为 traces.txt.bugreport</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="2-4回到非root用户和组"><a href="#2-4回到非root用户和组" class="headerlink" title="2.4回到非root用户和组"></a>2.4回到非root用户和组</h2><p>dumpstate由init启动，具有root权限<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">gid_t</span> groups[] =&#123;AID_LOG,AID_SDCARD,AID_SDCARD_RW,AID_MOUNT,AID_INET,AID_NET_BW_STATS&#125;;</span><br><span class="line">setgroups(<span class="keyword">sizeof</span>(groups)/<span class="keyword">sizeof</span>(groups[<span class="number">0</span>],groups)!=<span class="number">0</span>);</span><br><span class="line">setgid(AID_SHELL);</span><br><span class="line">setuid(AID_SHELL)</span><br></pre></td></tr></table></figure></p>
+<h2 id="2-5-dumpstate-正真执行"><a href="#2-5-dumpstate-正真执行" class="headerlink" title="2.5 dumpstate()正真执行"></a>2.5 dumpstate()正真执行</h2><p>下面单独分析</p>
+<h2 id="2-6-通知bugreport操作"><a href="#2-6-通知bugreport操作" class="headerlink" title="2.6 通知bugreport操作"></a>2.6 通知bugreport操作</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(do_broadcast &amp;&amp; use_outfile &amp;&amp; do_fb)&#123;</span><br><span class="line">    <span class="comment">//run_command(title,timeout,char*command,...);</span></span><br><span class="line">    run_command(<span class="literal">NULL</span>,<span class="number">5</span>,<span class="string">"/system/bin/am"</span>,<span class="string">"broadcast"</span>,<span class="string">"--user"</span>,<span class="string">"0"</span></span><br><span class="line">    <span class="string">"-a"</span>,<span class="string">"android.intent.action.BUGREPORT_FINISHED"</span>,</span><br><span class="line">    <span class="string">"--es"</span>,<span class="string">"android.intent.extra.BUGREPORT"</span>,path,</span><br><span class="line">    <span class="string">"--es"</span>,<span class="string">"android.intent.extra.SCREENSHOT"</span>,screenshot_path,</span><br><span class="line">    <span class="string">"--receiver-permission"</span>,<span class="string">"android.permission.DUMP"</span>,<span class="literal">NULL</span>); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>utils.c文件中<code>run_command()</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">run_command</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>*title,<span class="keyword">int</span> timeout_seconds,<span class="keyword">const</span> <span class="keyword">char</span>*command)</span></span>&#123;</span><br><span class="line">    fflush(<span class="built_in">stdout</span>);</span><br><span class="line">    <span class="keyword">clock_t</span> start=clock();</span><br><span class="line">    <span class="keyword">pid_t</span> pid=fork();</span><br><span class="line">    <span class="keyword">if</span>(pid&lt;<span class="number">0</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"fork:%s\n"</span>,strerror(errno));</span><br><span class="line">        <span class="keyword">return</span> pid;</span><br><span class="line">    &#125;<span class="keyword">else</span> <span class="keyword">if</span>(pid==<span class="number">0</span>)&#123;<span class="comment">//子进程</span></span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span> *args[<span class="number">1024</span>]=&#123;command&#125;;</span><br><span class="line">        <span class="keyword">size_t</span> arg;</span><br><span class="line">        <span class="comment">//父进程死了，自己成发送SIGKILL</span></span><br><span class="line">        prctl(PR_SET_PDEATHSIG,SIGKILL);</span><br><span class="line">        va_list ap;</span><br><span class="line">        va_start(ap,command);</span><br><span class="line">        <span class="keyword">if</span>(title)<span class="built_in">printf</span>(<span class="string">"----- %s (%s"</span>,title,command);</span><br><span class="line">        <span class="keyword">for</span>(arg=<span class="number">1</span>;arg&lt;<span class="keyword">sizeof</span>(args)/<span class="keyword">sizeof</span>(args[<span class="number">0</span>]);++args)&#123;</span><br><span class="line">            args[arg]=va_arg(ap,<span class="keyword">const</span> <span class="keyword">char</span>*);</span><br><span class="line">            <span class="keyword">if</span>(args[arg]==<span class="literal">NULL</span>)<span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">if</span>(title)<span class="built_in">printf</span>(<span class="string">" %s"</span>,args[arg]);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(title)<span class="built_in">printf</span>(<span class="string">") -----\n"</span>);</span><br><span class="line">        fflush(<span class="built_in">stdout</span>);</span><br><span class="line">        execvp(command,(<span class="keyword">char</span>**)args);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"***exec(%s):%s\n"</span>,command,strerror(errno));</span><br><span class="line">        fflush(<span class="built_in">stdout</span>);</span><br><span class="line">        _exit(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//主进程处理</span></span><br><span class="line">    <span class="keyword">for</span>(;;)&#123;</span><br><span class="line">        <span class="keyword">int</span> status;</span><br><span class="line">        <span class="keyword">pid_t</span> p=waitpid(pid,&amp;status,WNOHANG);</span><br><span class="line">        <span class="keyword">float</span> elapsed=(<span class="keyword">float</span>)(clock()-start)/CLOCKS_PER_SEC;</span><br><span class="line">        <span class="comment">//fork()返回子进程pid</span></span><br><span class="line">        <span class="keyword">if</span>(p==pid)&#123;</span><br><span class="line">        <span class="comment">//判断子进程返回的状态</span></span><br><span class="line">           <span class="keyword">if</span>(WIFSIGNALED(status))&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"*** %s Killed by signal %d\n"</span>,command,WIERMSIG(status));</span><br><span class="line">           &#125;<span class="keyword">else</span> <span class="keyword">if</span>(WIFEXITED(status)&amp;&amp; WEXISTATUS(status)&gt;<span class="number">0</span>)&#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"** %s Exit code %d\n"</span>,command,WEXISTATUS(status));</span><br><span class="line">           &#125;</span><br><span class="line">           <span class="keyword">if</span>(title) <span class="built_in">printf</span>(<span class="string">"%s %.1fs elasped\n"</span>,command,elapsed);</span><br><span class="line">            <span class="keyword">return</span> status;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(timeout_seconds &amp;&amp; elapsed &gt; timeout_seconds)&#123;</span><br><span class="line">            <span class="built_in">printf</span>(<span class="string">"**** %sTimeout after %.1fs (killing pid %d)\n"</span>,command,elapsed,pid);</span><br><span class="line">            kill(pid,SIGTERM);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        usleep(<span class="number">100000</span>);<span class="comment">//pll every 0.1 sec</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="3-dumpstate分析"><a href="#3-dumpstate分析" class="headerlink" title="3.dumpstate分析"></a>3.dumpstate分析</h1><p>主要通过<code>run_command</code>,<code>dump_file</code>,<code>do_dmesg</code>,<code>print_properties</code>,<code>for_each_pid</code>，完成各种信息的dump.</p>
+<h2 id="3-1-dump-file"><a href="#3-1-dump-file" class="headerlink" title="3.1 dump_file"></a>3.1 <code>dump_file</code></h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">dump_file</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* tile,<span class="keyword">const</span> <span class="keyword">char</span> *path)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> fd=open(path,O_RDONLY);</span><br><span class="line">    <span class="keyword">int</span> newline=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(;;)&#123;</span><br><span class="line">        <span class="keyword">int</span> ret=read(fd,buffer,<span class="keyword">sizeof</span>(buffer));</span><br><span class="line">        ret=fwrite(buffer,ret,<span class="number">1</span>,<span class="built_in">stdout</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(reg&lt;=<span class="number">0</span>) <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line">close(fd);</span><br></pre></td></tr></table></figure>
+<h2 id="3-2-do-dmesg"><a href="#3-2-do-dmesg" class="headerlink" title="3.2 do_dmesg"></a>3.2 <code>do_dmesg</code></h2><p>打印KERNEL信息。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">do_dmesg</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"----------KERNEL LOG(dmesg)------\n"</span>);</span><br><span class="line">    <span class="comment">//get size of kernel buffer</span></span><br><span class="line">    <span class="keyword">int</span> size=klogctl(KLOG_SIZE_BUFFER,<span class="literal">NULL</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="keyword">char</span> * buf=(<span class="keyword">char</span>*)<span class="built_in">malloc</span>(size+<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">int</span> retval=klogctl(KLOG_READ_ALL,buf,size);</span><br><span class="line">    buf[retval]=<span class="string">'\0'</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%s\n\n"</span>,buf);</span><br><span class="line">    <span class="built_in">free</span>(buf);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="3-3-print-properties"><a href="#3-3-print-properties" class="headerlink" title="3.3 print_properties()"></a>3.3 <code>print_properties()</code></h2><p>打印所有的系统属性</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">size_t</span> num_props=<span class="number">0</span>;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">char</span>*props[<span class="number">2000</span>];</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">print_prop</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>*key,<span class="keyword">const</span> <span class="keyword">char</span>*name,<span class="keyword">void</span>*user)</span></span>&#123;</span><br><span class="line">    <span class="comment">//未使用该变量，避免编译器出现 unused but defined warning.</span></span><br><span class="line">    (<span class="keyword">void</span>) user;</span><br><span class="line">    <span class="comment">//属性数目小于2000</span></span><br><span class="line">    <span class="keyword">if</span>(num_props&lt;<span class="keyword">sizeof</span>(props)/<span class="keyword">sizeof</span>(props[<span class="number">0</span>]))&#123;</span><br><span class="line">        <span class="keyword">char</span> buf[PROPERTY_KEY_MAX+PROPERTY_VALUE_MAX+<span class="number">10</span>];</span><br><span class="line">        <span class="built_in">snprintf</span>(buf,<span class="keyword">sizeof</span>(buf),<span class="string">"[%s] : [%s]\n"</span>,key,name);</span><br><span class="line">        props[num_props++]=strdup(buf);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">compare_prop</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span>*a,<span class="keyword">const</span> <span class="keyword">void</span>*b)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">strcmp</span>(*(<span class="keyword">char</span>* <span class="keyword">const</span>*)a,*(<span class="keyword">char</span>*<span class="keyword">const</span>*)b);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print_properties</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">size_t</span> i;</span><br><span class="line">    num_props=<span class="number">0</span>;</span><br><span class="line">    <span class="comment">//遍历所有的属性，并回调回来</span></span><br><span class="line">    property_list(print_prop,<span class="literal">NULL</span>);</span><br><span class="line">    <span class="comment">//排序数组</span></span><br><span class="line">    qsort(&amp;prop,num_props,<span class="keyword">sizeof</span>(props[<span class="number">0</span>]),compare_prop);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"----------------SYSTEM PROPERTIES ---------\n"</span>);</span><br><span class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;num_props;++i)&#123;</span><br><span class="line">        <span class="built_in">fputs</span>(props[i],<span class="built_in">stdout</span>);</span><br><span class="line">        <span class="built_in">free</span>(props[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"\n"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中属性通过内存映射将<code>/dev/__properties__</code>到一个全局变量<code>__system_property_area__</code>.利用二叉树，管理属性。</p>
+<h2 id="3-4-for-each-pid-和-for-each-tid"><a href="#3-4-for-each-pid-和-for-each-tid" class="headerlink" title="3.4 for_each_pid 和 for_each_tid"></a>3.4 <code>for_each_pid</code> 和 <code>for_each_tid</code></h2><p>调用<code>for_each_pid(do_showmap,&quot;SMAPS OF ALL PROCESS&quot;)</code>和<code>for_each_tid(show_wchan,&quot;BLOCKED PROCESS WAIT-CHANNELS&quot;)</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">for_each_pid</span><span class="params">(for_each_pid_func func,<span class="keyword">const</span> <span class="keyword">char</span>*header)</span></span>&#123;</span><br><span class="line">    __for_each_pid(for_each_pid_helper,header,func); </span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">for_each_pid_helper</span><span class="params">(<span class="keyword">int</span> pid,<span class="keyword">const</span> <span class="keyword">char</span>*cmline,<span class="keyword">void</span>*arg)</span></span>&#123;</span><br><span class="line">    for_each_pid_func *func=arg;</span><br><span class="line">    func(pid,cmdline);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">void</span> __for_each_pid(<span class="keyword">void</span>(*helper)(<span class="keyword">int</span>,<span class="keyword">const</span> <span class="keyword">char</span>*,<span class="keyword">void</span>*),<span class="keyword">const</span> <span class="keyword">char</span>*header,<span class="keyword">void</span> *arg)&#123;</span><br><span class="line">    DIR*d;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">dirent</span> *<span class="title">de</span>;</span></span><br><span class="line">    <span class="keyword">if</span>(!(d=opendir(<span class="string">"/proc"</span>)));</span><br><span class="line">    <span class="keyword">while</span>((de=readdir(d)))&#123;</span><br><span class="line">        <span class="keyword">int</span> pid,fd;</span><br><span class="line">        <span class="keyword">char</span> cmdpath[<span class="number">256</span>],cmdline[<span class="number">256</span>];</span><br><span class="line">        <span class="keyword">if</span>(!(pid=atoi(de-&gt;[d_name])))&#123;</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">sprintf</span>(cmdpath,<span class="string">"/proc/%d/cmdline"</span>,pid);</span><br><span class="line">        <span class="built_in">memset</span>(cmdline,<span class="number">0</span>,<span class="keyword">sizeof</span>(cmdline));</span><br><span class="line">        <span class="keyword">if</span>((fd=open(cmdpath,O_RDONLY))&lt;<span class="number">0</span>)&#123;</span><br><span class="line">            <span class="built_in">strcpy</span>(cmdline,<span class="string">"N/A"</span>);</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            read(fd,cmdline,<span class="keyword">sizeof</span>(cmdline),<span class="number">-1</span>);</span><br><span class="line">            close(fd);</span><br><span class="line">        &#125;</span><br><span class="line">        helper(pid,cmdline,arg);</span><br><span class="line">    &#125;</span><br><span class="line">    closedir(d);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>for_each_tid类似。</p>
+<h1 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h1><p>bugreport通过socket与dumpstate服务建立通信。dumpstate()主要5大类:</p>
+<ul>
+<li>current log:<code>kernel,system,event,radio</code></li>
+<li>last log:<code>kernel ,system,radio</code></li>
+<li>vm traces:<code>just now,last ANR,tombstones</code></li>
+<li>dumpsys:<code>all checkin,app</code></li>
+<li>system info:<code>cpu,memory,io</code></li>
+</ul>
+<p>从bugreport内容输出顺序角度，详细内容:</p>
+<ul>
+<li>系统build以及运行时长等信息。<code>/proc/version</code>,运行时间<code>uptime</code></li>
+<li>内存/CPU进程等信息。<code>/proc/meminfo</code>,CPU信息：<code>top -n 1 -d 1 -m 30 -t</code>,<code>/proc/vmstat</code>,进程<code>ps -P</code>,线程<code>ps -t -p -P</code></li>
+<li><code>kernel log</code></li>
+<li><code>lsof</code>,<code>map</code>,<code>wait-channels</code>,LIST OF OPEN FILE(<code>/system/xbin/su lsof</code>)</li>
+<li><code>system log</code>,<code>logcat -v threadtime -d *:v</code></li>
+<li><code>event log</code>,<code>logcat -b events -v threadtime -d *:v</code></li>
+<li><code>radio log</code>:<code>logcat -b radio -v threadtime -d *:v</code></li>
+<li><code>vm traces</code><ul>
+<li>VM TRACES JUST NOW(<code>/data/anr/traces.txt.bugreport</code>)(抓bugreport时出发)</li>
+<li>VM TRACES AT LAST ANR(<code>/data/anr/traces.txt</code>)(存在就输出)</li>
+<li>TOMBSTONE(/data/tombstones/tombstone_xx)(存在就输出)</li>
+</ul>
+</li>
+<li>network相关信息:NETWORK DEV INFO<code>/proc/net/dev</code>,NETWORK ROUTES<code>/proc/net/route</code></li>
+<li><code>last kernel log</code>,<code>proc/last_kmsg</code></li>
+<li><code>last panic console</code>,<code>/data/dontpanic/apanic_console</code></li>
+<li><code>last panic threads</code>,<code>/data/notpanic/apanic_threads</code></li>
+<li>SYSTEM SETTINGS:<code>sqlite3 /data/data/com.android.providers.settings/databases/settings.db pragma user_version; select * from system; select * from secure; select * from global;</code></li>
+<li><code>last system log</code></li>
+<li><code>ip相关信息</code></li>
+<li><code>中断向量表</code></li>
+<li><code>property</code>以及fs等信息</li>
+<li><code>last radio log</code></li>
+<li>Binder相关信息</li>
+<li>dumpsys all;</li>
+<li>dumpsys checkin相关：<ul>
+<li>dumpsys batterystats电池统计</li>
+<li>dumpsys meminfo内存</li>
+<li>dumpsys netstats 网络统计</li>
+<li>dumpsys procstats 进程统计</li>
+<li>dumpsys usagestats使用统计</li>
+<li>dumpsys package</li>
+</ul>
+</li>
+<li>dumpsys app相关<ul>
+<li>dumpsys activity</li>
+<li>dumpsys acitivty service all</li>
+<li>dumpsys activity provider all</li>
+</ul>
+</li>
+</ul>
+<h2 id="4-1-ChkBugReport"><a href="#4-1-ChkBugReport" class="headerlink" title="4.1 ChkBugReport"></a>4.1 ChkBugReport</h2><p>1.通过命令生成bugreport文件</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bugreport &gt; bugreport.txt</span><br></pre></td></tr></table></figure>
+<p>2.执行chkbugreport，命令中jar和txt都必须填写相应文件的完全路径</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Java -jar chkbugreport.jar bugreport.txt</span><br></pre></td></tr></table></figure>
+<p>当然可以吧<code>.jar</code>添加path，则直接使用<code>chkbugreport bugreport.txt</code></p>
+<p>3.通过浏览器打开<code>/bugreport_out/index.html</code>，可视化信息出现</p>
+<p><strong>参考</strong>：</p>
+<p><a href="http://gityuan.com/2016/06/10/bugreport/" target="_blank" rel="noopener">bugreport源码篇</a></p>
+
+      
+    </div>
+
+    
+    <div>
+        
+            <div>
+    
+        <br>
+        <div style="text-align:center;color:#200000;font-size:30px;">-------------End-Thanks-------------</div>
+    
+</div>
+
+
+        
+    </div>
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android调试/" rel="tag"><i class="fa fa-tag"></i> Android调试</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/23/dumpsys/" rel="next" title="dumpsys">
+                <i class="fa fa-chevron-left"></i> dumpsys
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/27/dropbox/" rel="prev" title="dropbox">
+                dropbox <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Melvin">
+            
+              <p class="site-author-name" itemprop="name">Melvin</p>
+              <p class="site-description motion-element" itemprop="description">Learn Android/Linux OS</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">33</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/babymelvin" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:hang.yasuo@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://my.csdn.net/" target="_blank" title="CSDN"><i class="fa fa-fw fa-globe"></i>CSDN</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-概述"><span class="nav-text">1.概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-dumpstate"><span class="nav-text">2.dumpstate</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-处理SIGPIPE信号"><span class="nav-text">2.1 处理SIGPIPE信号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-设置进程优先级"><span class="nav-text">2.2 设置进程优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-收集Dalvik和native进程栈信息"><span class="nav-text">2.3 收集Dalvik和native进程栈信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4回到非root用户和组"><span class="nav-text">2.4回到非root用户和组</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-dumpstate-正真执行"><span class="nav-text">2.5 dumpstate()正真执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-6-通知bugreport操作"><span class="nav-text">2.6 通知bugreport操作</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-dumpstate分析"><span class="nav-text">3.dumpstate分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-dump-file"><span class="nav-text">3.1 dump_file</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-do-dmesg"><span class="nav-text">3.2 do_dmesg</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-print-properties"><span class="nav-text">3.3 print_properties()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-4-for-each-pid-和-for-each-tid"><span class="nav-text">3.4 for_each_pid 和 for_each_tid</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-总结"><span class="nav-text">4.总结</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-ChkBugReport"><span class="nav-text">4.1 ChkBugReport</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" style="background:#F8F8F8">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DO WAHTEVER YOU WANT TO DO!</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.3.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

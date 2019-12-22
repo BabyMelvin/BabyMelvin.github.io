@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="ContentProvider Content Providers将自己的数据安全封装给自己或别的app访问。 Content providers是一套接口，可连接不同的应用，能够让别的app安全访问和修改你的数据。 还有一点好处，content provider进行数据抽象，当你修改自己的数据，比如SQL转到其他数据库，其他app不用去修改。">
+<meta name="keywords" content="Android组件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="contentprovider使用">
+<meta property="og:url" content="http://yoursite.com/2017/03/11/contentprovider使用/index.html">
+<meta property="og:site_name" content="杭">
+<meta property="og:description" content="ContentProvider Content Providers将自己的数据安全封装给自己或别的app访问。 Content providers是一套接口，可连接不同的应用，能够让别的app安全访问和修改你的数据。 还有一点好处，content provider进行数据抽象，当你修改自己的数据，比如SQL转到其他数据库，其他app不用去修改。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2017/03/11/contentprovider使用/content-provider-interaction.png">
+<meta property="og:updated_time" content="2019-02-02T11:21:31.745Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="contentprovider使用">
+<meta name="twitter:description" content="ContentProvider Content Providers将自己的数据安全封装给自己或别的app访问。 Content providers是一套接口，可连接不同的应用，能够让别的app安全访问和修改你的数据。 还有一点好处，content provider进行数据抽象，当你修改自己的数据，比如SQL转到其他数据库，其他app不用去修改。">
+<meta name="twitter:image" content="http://yoursite.com/2017/03/11/contentprovider使用/content-provider-interaction.png">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="杭" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/03/11/contentprovider使用/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>contentprovider使用 | 杭</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">杭</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Practice makes perfect!</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/11/contentprovider使用/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Melvin">
+      <meta itemprop="description" content="Learn Android/Linux OS">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="杭">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">contentprovider使用
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2017-03-11 23:49:14" itemprop="dateCreated datePublished" datetime="2017-03-11T23:49:14+08:00">2017-03-11</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-02-02 19:21:31" itemprop="dateModified" datetime="2019-02-02T19:21:31+08:00">2019-02-02</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="ContentProvider"><a href="#ContentProvider" class="headerlink" title="ContentProvider"></a>ContentProvider</h1><ul>
+<li>Content Providers将自己的数据安全封装给自己或别的app访问。</li>
+<li>Content providers是一套接口，可连接不同的应用，能够让别的app安全访问和修改你的数据。</li>
+<li>还有一点好处，content provider进行数据抽象，当你修改自己的数据，比如SQL转到其他数据库，其他app不用去修改。</li>
+</ul>
+<a id="more"></a>
+<p><strong>CursorLoader</strong>对象依赖于content provider，能够用来异步查询，并返回结果给UI层。<a href="https://developer.android.com/guide/components/loaders" target="_blank" rel="noopener">用CursorLoader来查寻</a></p>
+<h1 id="1-概要"><a href="#1-概要" class="headerlink" title="1.概要"></a>1.概要</h1><p>content provider访问数据有很多不同的api。</p>
+<ul>
+<li>和其他应用共享</li>
+<li>发送数据给widget</li>
+<li>通过<a href="https://developer.android.com/reference/android/content/SearchRecentSuggestionsProvider" target="_blank" rel="noopener">SearchRecentSuggestionsProvider</a>返回给应用搜索建议</li>
+<li>和服务器同步应用数据，使用<a href="https://developer.android.com/reference/android/content/AbstractThreadedSyncAdapter" target="_blank" rel="noopener">AbstractThreadedSyncAdapter</a></li>
+<li>在UI中加载数据使用<a href="https://developer.android.com/reference/android/content/CursorLoader" target="_blank" rel="noopener">CursorLoader</a></li>
+</ul>
+<h1 id="2-获得一个provider"><a href="#2-获得一个provider" class="headerlink" title="2.获得一个provider"></a>2.获得一个provider</h1><p>使用ContentResolver和Content provider进行交互。UI层交互过程应该这样实现：</p>
+<p><img src="/2017/03/11/contentprovider使用/content-provider-interaction.png" alt="UI使用"></p>
+<h2 id="2-1-query数据"><a href="#2-1-query数据" class="headerlink" title="2.1 query数据"></a>2.1 query数据</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//查询用户字典和返回结果</span><br><span class="line">mCursor=getContentResolver().query(</span><br><span class="line">UserDictionary.Words.CONTENT_URI,//Uri,相当于FROM table_name，查询表名称</span><br><span class="line">mProjections,//col,col，待查询每行数据对应列数组</span><br><span class="line">mSelectingCluase,//指定选择行的条件</span><br><span class="line">mSelectionArgs,//指定选择行的参数</span><br><span class="line">mSortOrder//返回选择行排序Cursor</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<h1 id="3-Conent-Uri"><a href="#3-Conent-Uri" class="headerlink" title="3.Conent Uri"></a>3.Conent Uri</h1><p>外界进程通过URI找到对应的ContentProvider和其中的数据，再进行数据操作<br>URI分为<strong>系统预置</strong>和<strong>自定义</strong>1，分别对应系统内置的数据（如通讯录、日程表等等）和自定义数据库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">自定义URI=content://com.ellabrain.provider/User/1</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>content://</code>:主题(schema),Android规定ContentProvider的前缀</li>
+<li><code>com.ellabrain.provider</code>:授权信息(authority),ContentProvider唯一标识</li>
+<li><code>User</code>:表名</li>
+<li><code>1</code>：记录(ID),表中某一个记录(若无指定，则返回全部记录)</li>
+</ul>
+<p>使用表中唯一行数据，比如<code>_ID</code>是4，可以使用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Uri 4thUri=ContentUris.withAppendedId(&quot;content://com.ellabrain.provider/User&quot;,4);</span><br></pre></td></tr></table></figure>
+<h1 id="4-获取数据query"><a href="#4-获取数据query" class="headerlink" title="4.获取数据query"></a>4.获取数据query</h1><p>用下面表进行演示：</p>
+<table>
+<thead>
+<tr>
+<th>word</th>
+<th>app id</th>
+<th>frequency</th>
+<th>locale</th>
+<th>_ID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mapreduce</td>
+<td>user1</td>
+<td>100</td>
+<td>en_US</td>
+<td>1</td>
+</tr>
+<tr>
+<td>precompiler</td>
+<td>user14</td>
+<td>200</td>
+<td>fr_FR</td>
+<td>2</td>
+</tr>
+<tr>
+<td>applet</td>
+<td>user2</td>
+<td>225</td>
+<td>fr_CA</td>
+<td>3</td>
+</tr>
+<tr>
+<td>const</td>
+<td>user1</td>
+<td>255</td>
+<td>pt_BR</td>
+<td>4</td>
+</tr>
+<tr>
+<td>int</td>
+<td>user5</td>
+<td>100</td>
+<td>en_UK</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>获取数据应该有两步：</p>
+<ul>
+<li>获得provider读权限</li>
+<li>写查询provider的代码</li>
+</ul>
+<h2 id="4-1获取读权限"><a href="#4-1获取读权限" class="headerlink" title="4.1获取读权限"></a>4.1获取读权限</h2><p>需要在mainfest中用<code>&lt;uses-permisssion&gt;</code>标签中声明，声明的内容就是在provider中写的权限的名字，要保证两者一样。</p>
+<h2 id="4-2写代码query"><a href="#4-2写代码query" class="headerlink" title="4.2写代码query"></a>4.2写代码query</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//a prejection 其中返回行需要的哪些栏目</span></span><br><span class="line">String[] mProjection=&#123;</span><br><span class="line">	UserDictionary.Words._ID,   </span><br><span class="line">    UserDictionary.Words.WORD,   </span><br><span class="line">    UserDictionary.Words.LOCALE</span><br><span class="line">&#125;;</span><br><span class="line">String mSelectionClause=<span class="keyword">null</span>;</span><br><span class="line"><span class="comment">//初始化选择参数</span></span><br><span class="line">String [] mSelectionArgs=&#123;<span class="string">""</span>&#125;;</span><br></pre></td></tr></table></figure>
+<p>行获取表达方式被分解成<code>selection clause</code>和<code>selection argumnets</code>.</p>
+<ul>
+<li><code>selection clause</code>由一个逻辑和布尔表达式，栏目名称，和值。<ul>
+<li>设置null，则表示符栏目返回所有数据。</li>
+<li>如果输入值，形式如<code>UserDictionary.Words.WORD + &quot; = ?&quot;</code>从selection arguments中获取，本例子从用户输入获取。</li>
+</ul>
+</li>
+<li>如果<code>selection clause</code>使用替换参数<code>?</code>,参数从<code>selection arguments</code>中获取。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">String[] mSelectionArgs = &#123;<span class="string">""</span>&#125;;</span><br><span class="line"><span class="comment">//从UI获取一个单词</span></span><br><span class="line">mSearchString = mSearchWord.getText().toString();</span><br><span class="line"><span class="comment">//检查是否输入是否为空</span></span><br><span class="line"><span class="keyword">if</span>(TextUtils.isEmpty(mSearchString))&#123;</span><br><span class="line">	<span class="comment">//设置selection clause 为null，将会返回所有单词</span></span><br><span class="line">	mSelectionCluase=<span class="keyword">null</span>;</span><br><span class="line">	mSelectionArgs[<span class="number">0</span>]=<span class="string">""</span>;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">	mSelectionClasue=UserDictionary.Words.WORD+<span class="string">""</span>= ?;</span><br><span class="line">	mSelectionArgs[<span class="number">0</span>]=mSearchString;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//查询用户字典和返回结果</span></span><br><span class="line">mCursor=getContentResolver().query(</span><br><span class="line">UserDictionary.Words.CONTENT_URI,<span class="comment">//Uri,相当于FROM table_name，查询表名称</span></span><br><span class="line">mProjections,<span class="comment">//col,col，待查询每行数据对应列数组</span></span><br><span class="line">mSelectingCluase,<span class="comment">//指定选择行的条件</span></span><br><span class="line">mSelectionArgs,<span class="comment">//指定选择行的参数</span></span><br><span class="line">mSortOrder<span class="comment">//返回选择行排序Cursor</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">null</span>==mCursor)&#123;</span><br><span class="line">&#125;<span class="keyword">else</span> <span class="keyword">if</span>(mCursor.getCount()&lt;<span class="number">1</span>)&#123;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面类似于SQL的语句为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT _ID, word ,locale FROM words WHERE word = &lt;userinput&gt; ORDER BY word ASC;</span><br></pre></td></tr></table></figure>
+<h2 id="4-3避免恶意输入"><a href="#4-3避免恶意输入" class="headerlink" title="4.3避免恶意输入"></a>4.3避免恶意输入</h2><p>使用<code>?</code>可避免恶意输入。假如使用如下语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String mSelectionClause =  &quot;var = &quot; + mUserInput;</span><br></pre></td></tr></table></figure>
+<p>如果用户输入内从容为<code>nothing; DROP TABLE *;&quot;</code>那么将会执行该SQL语句导致删除整个数据。使用<code>?</code>不会将输入当成SQL语句来执行，从而得到保护。</p>
+<h2 id="4-4显示查询结果"><a href="#4-4显示查询结果" class="headerlink" title="4.4显示查询结果"></a>4.4显示查询结果</h2><p>查询返回一个<code>Cursor</code>对象。用<code>Cursor</code>对象可以遍历返回结果的所有行，来得到每栏目数据类型，得到栏目数据，和检查其他结果属性。一些<code>Cursor</code>当数据改变自动更新对象，并触发观察方法。</p>
+<p>如果没有和选择条件匹配，返回一个<code>Cursor</code>对象，但是<code>Cursor.getCount()</code>是0.出错的时候返回null，或者抛出Exception。</p>
+<p>下面举例说明将<code>Cursor</code>展示在<code>ListView</code>中.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">String[] mWordListColumns=</span><br><span class="line">&#123;</span><br><span class="line">	UserDictionary.Words.WORD,</span><br><span class="line">	UserDictionary.Words.LOCALE</span><br><span class="line">&#125;;</span><br><span class="line">int[] mWordListItems=&#123;R.id.dictWord,R.id.locale&#125;;</span><br><span class="line"></span><br><span class="line">mCursorAdapter=new SimpleCursorAdapter&#123;</span><br><span class="line">getApplicaitonContext(),</span><br><span class="line">R.layout.worlistrow,</span><br><span class="line">mCursor,</span><br><span class="line">mWordListColumns,</span><br><span class="line">mWordListItems,</span><br><span class="line">0</span><br><span class="line">&#125;;</span><br><span class="line">mWordList.setAdapter(mCursorAdapter);</span><br></pre></td></tr></table></figure>
+<h2 id="4-5从查询结果中获取数据"><a href="#4-5从查询结果中获取数据" class="headerlink" title="4.5从查询结果中获取数据"></a>4.5从查询结果中获取数据</h2><p>Cursor提供<code>get</code>方法获取元素，可以是<code>getType</code>，<code>getString</code><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//看栏"word"的栏索引</span></span><br><span class="line"><span class="keyword">int</span> index=mCursor.getColumnIndex(UserDictionary.Words.WORD);</span><br><span class="line"><span class="keyword">if</span>(mCursor!=<span class="keyword">null</span>)&#123;</span><br><span class="line">	<span class="comment">//在第一次移动之前，行索引为-1.如果第一次不移动会得到exception</span></span><br><span class="line">	<span class="keyword">while</span>(mCursor.moveToNext())&#123;</span><br><span class="line">		newWord=mCursor.getString(index);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h1 id="5-insert-update和delete数据"><a href="#5-insert-update和delete数据" class="headerlink" title="5.insert,update和delete数据"></a>5.insert,update和delete数据</h1><h2 id="5-1insert-data"><a href="#5-1insert-data" class="headerlink" title="5.1insert data"></a>5.1insert data</h2><p>插入新行到provider中，返回一个那个行的URI。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Uri mNewUri;</span><br><span class="line">//定义一个对象包含插入信息</span><br><span class="line">ContentValue mNewValues=new ContentValues();</span><br><span class="line">mNewValues.put(UserDictionary.Words.APP_ID, &quot;example.user&quot;);</span><br><span class="line">mNewValues.put(UserDictionary.Words.LOCALE, &quot;en_US&quot;);</span><br><span class="line">mNewValues.put(UserDictionary.Words.WORD, &quot;insert&quot;);</span><br><span class="line">mNewValues.put(UserDictionary.Words.FREQUENCY, &quot;100&quot;);</span><br><span class="line">mNewUri = getContentResolver().insert(</span><br><span class="line">    UserDictionary.Words.CONTENT_URI,   // the user dictionary content URI</span><br><span class="line">    mNewValues                          // the values to insert</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>注意：其中一栏，不要求同一个类型，当然还可以放入<code>null</code>使用<code>ContentValues.putNull()</code>.<br>并且不需要添加<code>_ID</code>值，因为这个栏自动维护的。</p>
+<ul>
+<li>返回的mNewUri内容的格式：<code>content://user_dictionary/words/&lt;id_value&gt;</code>.其中<code>&lt;id_value&gt;</code>是<code>_ID</code>中的新行值。</li>
+<li>从返回的Uri中获得这个值<code>&lt;id_value&gt;</code>，可通过<code>ContentUris.parseId()</code></li>
+</ul>
+<h2 id="5-2update-data"><a href="#5-2update-data" class="headerlink" title="5.2update data"></a>5.2update data</h2><p>更新和插入类似。对selection条件进行约束。下面示例，将<code>en</code>改变成<code>null</code>。返回的的是更新的行号</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ContentValue mUpdateValues=new ContentValues();</span><br><span class="line"></span><br><span class="line">String mSelectionClause=UserDictionary.Words.LOCALE +  &quot; LIKE ?&quot;;</span><br><span class="line">String[] mSelectionArgs = &#123;&quot;en_%&quot;&#125;;</span><br><span class="line"></span><br><span class="line">int mRowsUpdated=0;</span><br><span class="line">mUpdateValues.putNull(UserDictionary.Words.LOCALE);</span><br><span class="line">mRowsUpdated = getContentResolver().update(</span><br><span class="line">    UserDictionary.Words.CONTENT_URI,   // the user dictionary content URI</span><br><span class="line">    mUpdateValues                       // the columns to update</span><br><span class="line">    mSelectionClause                    // the column to select on</span><br><span class="line">    mSelectionArgs                      // the value to compare to</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<h2 id="5-3-delete-data"><a href="#5-3-delete-data" class="headerlink" title="5.3 delete data"></a>5.3 delete data</h2><p>删除和获取类似。具体select的条件。返回被删除的行数。下面举例删除符合”user”的行。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">String mSelectionClause=UserDictionary.Words.APP_ID + <span class="string">" LIKE ?"</span>;</span><br><span class="line">String[] mSelectionArgs = &#123;<span class="string">"user"</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> mRowsDeleted = <span class="number">0</span>;</span><br><span class="line">mRowsDeleted = getContentResolver().delete(</span><br><span class="line">    UserDictionary.Words.CONTENT_URI,   <span class="comment">// the user dictionary content URI</span></span><br><span class="line">    mSelectionClause                    <span class="comment">// the column to select on</span></span><br><span class="line">    mSelectionArgs                      <span class="comment">// the value to compare to</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<h1 id="6-提供的数据类型"><a href="#6-提供的数据类型" class="headerlink" title="6.提供的数据类型"></a>6.提供的数据类型</h1><p>providers可以提供很多数据类型如：</p>
+<ul>
+<li>string</li>
+<li>integer</li>
+<li>long integer(long)</li>
+<li>floating point</li>
+<li>long floating point(dobule)</li>
+</ul>
+<p>另一个数据类型使用BinaryLargeOBject(BLOB)比如一个64kb数据。<br>providers还提供MIME数据类型信息。可以使用MIME类型信息看提供的数据，自己应用能否进行处理。获得URI的MIME类型，使用方法<code>ContentResolver.getType()</code>.</p>
+<h1 id="7-获得provider可选形式"><a href="#7-获得provider可选形式" class="headerlink" title="7.获得provider可选形式"></a>7.获得provider可选形式</h1><p>对应用开发者，有很重要的三种可选形式：</p>
+<ul>
+<li>Batch access:批量访问。通过<code>ContentProviderOperation</code>类获得一个批量访问方法，并且用<code>ContentResolver.applyBatch()</code>来应用。</li>
+<li>异步获取。使用CursorLoader对象。</li>
+<li><a href="https://developer.android.com/guide/topics/providers/content-provider-basics#Intents" target="_blank" rel="noopener">通过intent访问</a>：不能直接发送给intent，但是可以发送给provider的应用。</li>
+</ul>
+<h2 id="7-1批量访问"><a href="#7-1批量访问" class="headerlink" title="7.1批量访问"></a>7.1批量访问</h2><p>批量访问用来插入很多行，或者在不同表中使用同一个方法行插入。</p>
+<p><a href="https://developer.android.com/reference/android/provider/ContactsContract.RawContacts" target="_blank" rel="noopener">ContactsContract.RawContacts</a></p>
+<h2 id="7-2通过一个帮助app显示数据"><a href="#7-2通过一个帮助app显示数据" class="headerlink" title="7.2通过一个帮助app显示数据"></a>7.2通过一个帮助app显示数据</h2><p>如果没有获得权限，仍然想要intent显示另一个app的数据。比如日历应用接收一个<a href="">ACTION_VIEW</a>intent，来显示特定日期和事件。这个允许你显示日期信息，不必自己创建UI。详细见<a href="https://developer.android.com/guide/topics/providers/calendar-provider" target="_blank" rel="noopener">Calendar Provider</a></p>
+<p>你发送intent的应用不必是绑定provider的应用。例如你从一个Contact Provider中获得一个信息，发送一个ACTION_VIEW给一个image viewer，intent中包含contact照片的URI信息。</p>
+<h2 id="7-3通过intents获得数据"><a href="#7-3通过intents获得数据" class="headerlink" title="7.3通过intents获得数据"></a>7.3通过intents获得数据</h2><p>intents能够对contentprovider提供直接权限。</p>
+<ul>
+<li>可以允许用户这个用户即使没有权限也能获得数据。</li>
+<li>或者通过一个result intent从一个有权限应用获得</li>
+<li>获得激活一个有权限的应用让他来为你工作。</li>
+</ul>
+<h2 id="7-4通过临时权限获得"><a href="#7-4通过临时权限获得" class="headerlink" title="7.4通过临时权限获得"></a>7.4通过临时权限获得</h2><p>应用通过添加intent的flag获得临时权限，这个权限直到获取完成返回。添加的标志如下：</p>
+<ul>
+<li>read permission:<code>FLAG_GRANT_READ_URI_PERMISSION</code></li>
+<li>write permission:<code>FLAG_GRANT_WRITE_URI_PERMISSION</code></li>
+</ul>
+<p>注意：这些flags不会给包含在URI中的authority权限，仅仅是URI本身。</p>
+<p>在mainifest中定义URI，在<code>&lt;provider&gt;</code>中使用<code>android:grantUriPermission</code>属性，同时<code>&lt;grant-uri-permission&gt;</code>作为子元素。</p>
+
+      
+    </div>
+
+    
+    <div>
+        
+            <div>
+    
+        <br>
+        <div style="text-align:center;color:#200000;font-size:30px;">-------------End-Thanks-------------</div>
+    
+</div>
+
+
+        
+    </div>
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android组件/" rel="tag"><i class="fa fa-tag"></i> Android组件</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/12/26/Logger系统/" rel="next" title="Logger系统 ">
+                <i class="fa fa-chevron-left"></i> Logger系统 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/29/Android-进程-一/" rel="prev" title="Android 进程(一)">
+                Android 进程(一) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Melvin">
+            
+              <p class="site-author-name" itemprop="name">Melvin</p>
+              <p class="site-description motion-element" itemprop="description">Learn Android/Linux OS</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">33</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/babymelvin" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:hang.yasuo@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://my.csdn.net/" target="_blank" title="CSDN"><i class="fa fa-fw fa-globe"></i>CSDN</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ContentProvider"><span class="nav-text">ContentProvider</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#1-概要"><span class="nav-text">1.概要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-获得一个provider"><span class="nav-text">2.获得一个provider</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-query数据"><span class="nav-text">2.1 query数据</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-Conent-Uri"><span class="nav-text">3.Conent Uri</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-获取数据query"><span class="nav-text">4.获取数据query</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1获取读权限"><span class="nav-text">4.1获取读权限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2写代码query"><span class="nav-text">4.2写代码query</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3避免恶意输入"><span class="nav-text">4.3避免恶意输入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4显示查询结果"><span class="nav-text">4.4显示查询结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5从查询结果中获取数据"><span class="nav-text">4.5从查询结果中获取数据</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-insert-update和delete数据"><span class="nav-text">5.insert,update和delete数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1insert-data"><span class="nav-text">5.1insert data</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2update-data"><span class="nav-text">5.2update data</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3-delete-data"><span class="nav-text">5.3 delete data</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#6-提供的数据类型"><span class="nav-text">6.提供的数据类型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#7-获得provider可选形式"><span class="nav-text">7.获得provider可选形式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#7-1批量访问"><span class="nav-text">7.1批量访问</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-2通过一个帮助app显示数据"><span class="nav-text">7.2通过一个帮助app显示数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-3通过intents获得数据"><span class="nav-text">7.3通过intents获得数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-4通过临时权限获得"><span class="nav-text">7.4通过临时权限获得</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" style="background:#F8F8F8">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DO WAHTEVER YOU WANT TO DO!</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.3.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

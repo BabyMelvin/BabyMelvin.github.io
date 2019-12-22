@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.3.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.3.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.3.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.3.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.3.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="1.优先级Android 进程优先级，分为10级。优先级调度方法setThreadPriority(int tid,int priority)">
+<meta name="keywords" content="Android进程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 进程(一)">
+<meta property="og:url" content="http://yoursite.com/2017/06/29/Android-进程-一/index.html">
+<meta property="og:site_name" content="杭">
+<meta property="og:description" content="1.优先级Android 进程优先级，分为10级。优先级调度方法setThreadPriority(int tid,int priority)">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-02-02T11:21:31.739Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android 进程(一)">
+<meta name="twitter:description" content="1.优先级Android 进程优先级，分为10级。优先级调度方法setThreadPriority(int tid,int priority)">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="杭" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/06/29/Android-进程-一/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Android 进程(一) | 杭</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">杭</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">Practice makes perfect!</p>
+      
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/29/Android-进程-一/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Melvin">
+      <meta itemprop="description" content="Learn Android/Linux OS">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="杭">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android 进程(一)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2017-06-29 22:55:00" itemprop="dateCreated datePublished" datetime="2017-06-29T22:55:00+08:00">2017-06-29</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-02-02 19:21:31" itemprop="dateModified" datetime="2019-02-02T19:21:31+08:00">2019-02-02</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="1-优先级"><a href="#1-优先级" class="headerlink" title="1.优先级"></a>1.优先级</h1><p>Android 进程优先级，分为10级。优先级调度方法<code>setThreadPriority(int tid,int priority)</code></p>
+<a id="more"></a>
+<h2 id="1-1-进程优先级"><a href="#1-1-进程优先级" class="headerlink" title="1.1 进程优先级"></a>1.1 进程优先级</h2><table>
+<thead>
+<tr>
+<th>进程优先级</th>
+<th>nice值</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>THREAD_PRIORITY_LOWEST</td>
+<td>19</td>
+<td>最低优先级</td>
+</tr>
+<tr>
+<td>THREAD_PRIORITY_BACKGROUND</td>
+<td>10</td>
+<td>后台</td>
+</tr>
+<tr>
+<td>THREAD_PRIORITY_LESS_FAVOERABLE</td>
+<td>1</td>
+<td>比默认低</td>
+</tr>
+<tr>
+<td>THREAD_PRIORITY_DEFAULT</td>
+<td>0</td>
+<td>默认</td>
+</tr>
+<tr>
+<td>THREAD_PRIORITY_MORE_FAVORABLE</td>
+<td>-1</td>
+<td>比默认高</td>
+</tr>
+<tr>
+<td>THREAD_PRIORITY_FORGROUND</td>
+<td>-2</td>
+<td>前台</td>
+</tr>
+<tr>
+<td>THRAED_PRIORITY_DISPLAY</td>
+<td>-4</td>
+<td>显示相关</td>
+</tr>
+<tr>
+<td>THREAD_PRIORITY_URGENT_DISPLAY</td>
+<td>-8</td>
+<td>显示（更为重要），input事件</td>
+</tr>
+<tr>
+<td>THREAD_PRIORITY_AUDIO</td>
+<td>-16</td>
+<td>音频相关</td>
+</tr>
+<tr>
+<td>THREAD_PRIORITY_URGENT_AUDIO</td>
+<td>-19</td>
+<td>音频（更为重要）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="1-2组优先级别"><a href="#1-2组优先级别" class="headerlink" title="1.2组优先级别"></a>1.2组优先级别</h2><table>
+<thead>
+<tr>
+<th>组优先级</th>
+<th>取值</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>THREAD_GROUP_DEFAULT</td>
+<td>-1</td>
+<td>仅用于setProcessGroup,将优先级M=10进程提升到-2</td>
+</tr>
+<tr>
+<td>THREAD_GROUP_BG_NONINTERACTIVE</td>
+<td>0</td>
+<td>CPU分时的时长缩短</td>
+</tr>
+<tr>
+<td>THREAD_GROUP_FROGROUND</td>
+<td>1</td>
+<td>CPU分时的时长正常</td>
+</tr>
+<tr>
+<td>THREAD_GROUP_SYSTEM</td>
+<td>2</td>
+<td>系统线程组</td>
+</tr>
+<tr>
+<td>THREAD_GROUP_AUDIO_APP</td>
+<td>3</td>
+<td>应用程序音频</td>
+</tr>
+<tr>
+<td>THREAD_GROUP_AUDIO_SYS</td>
+<td>4</td>
+<td>系统程序音频</td>
+</tr>
+</tbody>
+</table>
+<h1 id="2-调度器选择"><a href="#2-调度器选择" class="headerlink" title="2. 调度器选择"></a>2. 调度器选择</h1><p>设置调度器方法：<code>setThreadSchduler(int tid int policy,int priority)</code></p>
+<table>
+<thead>
+<tr>
+<th>调度器</th>
+<th>名称</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SCHED_OTHER</td>
+<td>默认</td>
+<td>标准round-robin分时共享策略</td>
+</tr>
+<tr>
+<td>SCHED_BATCH</td>
+<td>批处理调度</td>
+<td>针对具有batch风格(批处理)进程的调度策略</td>
+</tr>
+<tr>
+<td>SCHED_IDLE</td>
+<td>空闲调度</td>
+<td>针对优先级非常低的适合在后台运行的进程</td>
+</tr>
+<tr>
+<td>SCHED_FIFO</td>
+<td>先进先出</td>
+<td>实时调度策略，android暂未实现</td>
+</tr>
+<tr>
+<td>SCHED_RR</td>
+<td>循环调度</td>
+<td>实时调度策略，Android暂未实现</td>
+</tr>
+</tbody>
+</table>
+<h1 id="3-Android进程声明周期"><a href="#3-Android进程声明周期" class="headerlink" title="3.Android进程声明周期"></a>3.Android进程声明周期</h1><p>进程的重要性，划分5级：</p>
+<ul>
+<li>1.前台进程(Foreground process)<ul>
+<li>用户当前操作所必需的进程。</li>
+</ul>
+</li>
+<li>2.可见进程(Visible process)<ul>
+<li>没有任何前台组件、但仍会影响用户在屏幕上所见内容的进程。</li>
+</ul>
+</li>
+<li>3.服务进程(Service process)<ul>
+<li>尽管服务进程与用户所见内容没有直接关联，但是它们通常在执行一些用户关心的操作（例如，在后台播放音乐或从网络下载数据）。</li>
+</ul>
+</li>
+<li>4.后台进程(Background process)<ul>
+<li>后台进程对用户体验没有直接影响，系统可能随时终止它们，以回收内存供前台进程、可见进程或服务进程使用。</li>
+</ul>
+</li>
+<li>5.空进程(Empty process)<ul>
+<li>保留这种进程的的唯一目的是用作缓存，以缩短下次在其中运行组件所需的启动时间。 为使总体系统资源在进程缓存和底层内核缓存之间保持平衡，系统往往会终止这些进程。</li>
+</ul>
+</li>
+</ul>
+<p>前台进程的重要性最高，依次递减，空进程的重要性最低。</p>
+<h1 id="4-Lowmemorykiller"><a href="#4-Lowmemorykiller" class="headerlink" title="4.Lowmemorykiller"></a>4.Lowmemorykiller</h1><p>Android中对于内存的回收，主要依靠Lowmemorykiller来完成，是一种根据阈值级别触发相应力度的内存回收的机制。</p>
+<h2 id="4-1-ADJ级别"><a href="#4-1-ADJ级别" class="headerlink" title="4.1  ADJ级别"></a>4.1  ADJ级别</h2><p>定义在ProcessList.java文件，oom_adj划分为16级，从<code>-17</code>到<code>16</code>之间取值。</p>
+<table>
+<thead>
+<tr>
+<th>ADJ级别</th>
+<th>取值</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UNKNOWN_ADJ</td>
+<td>16</td>
+<td>一般指将要会缓存进程，无法获取确定值</td>
+</tr>
+<tr>
+<td>CACHED_APP_MAX_ADJ</td>
+<td>15</td>
+<td>不可见进程的adj最大值 1</td>
+</tr>
+<tr>
+<td>CACHED_APP_MIN_ADJ</td>
+<td>9</td>
+<td>不可见进程的adj最小值 2</td>
+</tr>
+<tr>
+<td>SERVICE_B_AD</td>
+<td>8</td>
+<td>B List中的Service（较老的、使用可能性更小）</td>
+</tr>
+<tr>
+<td>PREVIOUS_APP_ADJ</td>
+<td>7</td>
+<td>上一个App的进程(往往通过按返回键)</td>
+</tr>
+<tr>
+<td>HOME_APP_ADJ</td>
+<td>6</td>
+<td>Home进程</td>
+</tr>
+<tr>
+<td>SERVICE_ADJ</td>
+<td>5</td>
+<td>服务进程(Service process)</td>
+</tr>
+<tr>
+<td>HEAVY_WEIGHT_APP_ADJ</td>
+<td>4</td>
+<td>后台的重量级进程，<code>system/rootdir/init.rc</code>文件中设置</td>
+</tr>
+<tr>
+<td>BACKUP_APP_ADJ</td>
+<td>3</td>
+<td>备份进程 3</td>
+</tr>
+<tr>
+<td>PERCEPTIBLE_APP_ADJ</td>
+<td>2</td>
+<td>可感知进程，比如后台音乐播放 4</td>
+</tr>
+<tr>
+<td>VISIBLE_APP_ADJ</td>
+<td>1</td>
+<td>可见进程(Visible process) 5</td>
+</tr>
+<tr>
+<td>FOREGROUND_APP_ADJ</td>
+<td>0</td>
+<td>前台进程（Foreground process） 6</td>
+</tr>
+<tr>
+<td>PERSISTENT_SERVICE_ADJ</td>
+<td>-11</td>
+<td>关联着系统或persistent进程</td>
+</tr>
+<tr>
+<td>PERSISTENT_PROC_ADJ</td>
+<td>-12</td>
+<td>系统persistent进程，比如telephony</td>
+</tr>
+<tr>
+<td>SYSTEM_ADJ</td>
+<td>-16</td>
+<td>系统进程</td>
+</tr>
+<tr>
+<td>NATIVE_ADJ</td>
+<td>-17</td>
+<td>native进程（不被系统管理）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-2-进程state级别"><a href="#4-2-进程state级别" class="headerlink" title="4.2 进程state级别"></a>4.2 进程state级别</h2><p>定义在ActivityManager.java文件，process_state划分18类，从<code>-1</code>到<code>16</code>之间取值。</p>
+<table>
+<thead>
+<tr>
+<th>state级别</th>
+<th>取值</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PROCESS_STATE_CACHED_EMPTY</td>
+<td>16</td>
+<td>进程处于cached状态，且为空进程</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_CACHED_ACTIVITY_CLIENT</td>
+<td>15</td>
+<td>进程处于cached状态，且为另一个cached进程(内含Activity)的client进程</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_CACHED_ACTIVITY</td>
+<td>14</td>
+<td>进程处于cached状态，且内含Activity</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_LAST_ACTIVITY</td>
+<td>13</td>
+<td>后台进程，且拥有上一次显示的Activity</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_HOME</td>
+<td>12</td>
+<td>后台进程，且拥有home Activity</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_RECEIVER</td>
+<td>11</td>
+<td>后台进程，且正在运行receiver</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_SERVICE</td>
+<td>10</td>
+<td>后台进程，且正在运行service</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_HEAVY_WEIGHT</td>
+<td>9</td>
+<td>后台进程，但无法执行restore，因此尽量避免kill该进程</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_BACKUP</td>
+<td>8</td>
+<td>后台进程，正在运行backup/restore操作</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_IMPORTANT_BACKGROUND</td>
+<td>7</td>
+<td>对用户很重要的进程，用户不可感知其存在</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_IMPORTANT_FOREGROUND</td>
+<td>6</td>
+<td>对用户很重要的进程，用户可感知其存在</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_TOP_SLEEPING</td>
+<td>5</td>
+<td>与PROCESS_STATE_TOP一样，但此时设备正处于休眠状态</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_FOREGROUND_SERVICE</td>
+<td>4</td>
+<td>拥有给一个前台Service</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_BOUND_FOREGROUND_SERVICE</td>
+<td>3</td>
+<td>拥有给一个前台Service，且由系统绑定</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_TOP</td>
+<td>2</td>
+<td>拥有当前用户可见的top Activity</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_PERSISTENT_UI</td>
+<td>1</td>
+<td>persistent系统进程，并正在执行UI操作</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_PERSISTENT</td>
+<td>0</td>
+<td>persistent系统进程</td>
+</tr>
+<tr>
+<td>PROCESS_STATE_NONEXISTENT</td>
+<td>-1</td>
+<td>不存在的进程</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-3-lmk策略"><a href="#4-3-lmk策略" class="headerlink" title="4.3 lmk策略"></a>4.3 lmk策略</h2><p>lowmemorykiller根据当前可用内存情况来进行进程释放，总设计了6个级别：</p>
+<ul>
+<li>1.CACHED_APP_MAX_ADJ</li>
+<li>2.CACHED_APP_MIN_ADJ</li>
+<li>3.BACKUP_APP_ADJ</li>
+<li>4.PERCEPTIBLE_APP_ADJ</li>
+<li>5.VISIBLE_APP_ADJ</li>
+<li>6.FOREGROUND_APP_ADJ</li>
+</ul>
+<p>系统内存从很宽裕到不足，<code>Lowmemorykiller</code>也会相应地从CACHED_APP_MAX_ADJ(第1档)开始杀进程，如果内存还不足，那么会杀CACHED_APP_MIN_ADJ(第2档)，不断深入，直到满足内存阈值条件。</p>
+
+      
+    </div>
+
+    
+    <div>
+        
+            <div>
+    
+        <br>
+        <div style="text-align:center;color:#200000;font-size:30px;">-------------End-Thanks-------------</div>
+    
+</div>
+
+
+        
+    </div>
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android进程/" rel="tag"><i class="fa fa-tag"></i> Android进程</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/11/contentprovider使用/" rel="next" title="contentprovider使用">
+                <i class="fa fa-chevron-left"></i> contentprovider使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/01/Android编译/" rel="prev" title="Android编译">
+                Android编译 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Melvin">
+            
+              <p class="site-author-name" itemprop="name">Melvin</p>
+              <p class="site-description motion-element" itemprop="description">Learn Android/Linux OS</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives">
+                
+                    <span class="site-state-item-count">33</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/babymelvin" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:hang.yasuo@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://my.csdn.net/" target="_blank" title="CSDN"><i class="fa fa-fw fa-globe"></i>CSDN</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-优先级"><span class="nav-text">1.优先级</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-进程优先级"><span class="nav-text">1.1 进程优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2组优先级别"><span class="nav-text">1.2组优先级别</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-调度器选择"><span class="nav-text">2. 调度器选择</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-Android进程声明周期"><span class="nav-text">3.Android进程声明周期</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-Lowmemorykiller"><span class="nav-text">4.Lowmemorykiller</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-ADJ级别"><span class="nav-text">4.1  ADJ级别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-进程state级别"><span class="nav-text">4.2 进程state级别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-lmk策略"><span class="nav-text">4.3 lmk策略</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" style="background:#F8F8F8">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DO WAHTEVER YOU WANT TO DO!</span>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.3.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.3.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.3.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.3.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.3.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.3.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
